@@ -1,5 +1,5 @@
 // BLX Global Loader
-// Version: 1.0.0
+// Version: 1.0.1
 
 import { BLX_TOC } from './toc/index.js';
 // future imports:
