@@ -15,6 +15,7 @@
 
       if (!list || !template) return;
 
+      // Keep a master template clone we can clone from
       const templateClone = template.cloneNode(true);
       list.innerHTML = '';
 
@@ -29,24 +30,39 @@
         rt.querySelectorAll('h2, h3').forEach(h => headings.push(h));
       });
 
+      if (!headings.length) return;
+
       let lastH2Item = null;
 
       headings.forEach((heading, index) => {
 
-        // Assign ID if missing
+        // Assign ID if missing, ensuring uniqueness
         if (!heading.id) {
-          const slug = heading.textContent
+          let slug = heading.textContent
             .trim()
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+            .replace(/^-+|-+$/g, '') || `section-${index + 1}`;
 
-          heading.id = slug || `section-${index + 1}`;
+          // Ensure ID is unique on the page
+          let uniqueSlug = slug;
+          let counter = 2;
+          while (document.getElementById(uniqueSlug)) {
+            uniqueSlug = `${slug}-${counter++}`;
+          }
+
+          heading.id = uniqueSlug;
         }
 
-        // Build TOC item
+        // Build TOC item from template
         const item = templateClone.cloneNode(true);
-        const link = item.querySelector('a') || document.createElement('a');
+
+        // Find or create a link
+        let link = item.querySelector('a');
+        if (!link) {
+          link = document.createElement('a');
+          item.appendChild(link);
+        }
 
         link.href = `#${heading.id}`;
         link.textContent = heading.textContent.trim();
@@ -75,6 +91,7 @@
           list.appendChild(item);
           lastH2Item = item;
         } else {
+          // h3: nest under last h2 if available, else top-level
           if (lastH2Item) {
             let subList = lastH2Item.querySelector('ul');
 
@@ -93,7 +110,11 @@
     });
   };
 
-  // Run once on initial page load
-  document.addEventListener('DOMContentLoaded', window.BLX_TOC);
+  // Run once on initial page load (even if script injected late)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.BLX_TOC);
+  } else {
+    window.BLX_TOC();
+  }
 
 })();
