@@ -1,5 +1,5 @@
 // BLX Global Loader
-// Version: 1.0.1
+// Version: 1.0.3
 
 import { BLX_TOC } from './toc/index.js';
 import './inline-svg/index.js';
