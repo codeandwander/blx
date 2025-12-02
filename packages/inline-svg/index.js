@@ -1,62 +1,59 @@
 // BLX Inline SVG
 // Version: 1.0.3
 
-window.BLX = window.BLX || {};
-window.BLX.inlineSVG = function () {
-  const targets = document.querySelectorAll('[blx-el="inline-svg"]');
-  if (!targets.length) return;
+(() => {
+  window.BLX = window.BLX || {};
 
-  const cache = {};
+  window.BLX.inlineSVG = function () {
+    const targets = document.querySelectorAll('[blx-el="inline-svg"]');
+    if (!targets.length) return;
 
-  targets.forEach(img => {
-    const src = img.getAttribute('src');
-    if (!src || !src.endsWith('.svg')) return;
+    const cache = {};
 
-    if (cache[src]) {
-      replaceImg(img, cache[src].cloneNode(true));
-    } else {
-      fetch(src)
-        .then(res => res.text())
-        .then(svgText => {
-          const parser = new DOMParser();
-          const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
-          const svgEl = svgDoc.querySelector('svg');
-          if (!svgEl) return;
+    targets.forEach(img => {
+      const src = img.getAttribute('src');
+      if (!src || !src.endsWith('.svg')) return;
 
-          // Remove width/height so CSS controls size
-          svgEl.removeAttribute('width');
-          svgEl.removeAttribute('height');
+      if (cache[src]) {
+        replaceImg(img, cache[src].cloneNode(true));
+      } else {
+        fetch(src)
+          .then(res => res.text())
+          .then(svgText => {
+            const parser = new DOMParser();
+            const svgDoc = parser.parseFromString(svgText, "image/svg+xml");
+            const svgEl = svgDoc.querySelector('svg');
+            if (!svgEl) return;
 
-          // Force colour inheritance for both fill and stroke
-          svgEl.setAttribute('fill', 'currentColor');
-          svgEl.setAttribute('stroke', 'currentColor');
+            svgEl.removeAttribute('width');
+            svgEl.removeAttribute('height');
 
-          // Remove *all* inline fill + stroke overrides
-          svgEl.querySelectorAll('[fill]').forEach(el => el.removeAttribute('fill'));
-          svgEl.querySelectorAll('[stroke]').forEach(el => el.removeAttribute('stroke'));
+            svgEl.setAttribute('fill', 'currentColor');
+            svgEl.setAttribute('stroke', 'currentColor');
 
-          // Cache processed version
-          cache[src] = svgEl;
+            svgEl.querySelectorAll('[fill]').forEach(el => el.removeAttribute('fill'));
+            svgEl.querySelectorAll('[stroke]').forEach(el => el.removeAttribute('stroke'));
 
-          replaceImg(img, svgEl.cloneNode(true));
-        })
-        .catch(err => console.error("BLX inlineSVG error:", err));
+            cache[src] = svgEl;
+
+            replaceImg(img, svgEl.cloneNode(true));
+          })
+          .catch(err => console.error("BLX inlineSVG error:", err));
+      }
+    });
+
+    function replaceImg(img, svg) {
+      if (img.id) svg.id = img.id;
+      if (img.className) svg.setAttribute('class', img.className);
+
+      const alt = img.getAttribute('alt');
+      if (alt) svg.setAttribute('data-alt', alt);
+
+      img.replaceWith(svg);
     }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    window.BLX.inlineSVG();
   });
-
-  function replaceImg(img, svg) {
-    // Keep ID + classes
-    if (img.id) svg.id = img.id;
-    if (img.className) svg.setAttribute('class', img.className);
-
-    // Alt → data-alt
-    const alt = img.getAttribute('alt');
-    if (alt) svg.setAttribute('data-alt', alt);
-
-    img.replaceWith(svg);
-  }
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-  window.BLX.inlineSVG();
-});
+})();
