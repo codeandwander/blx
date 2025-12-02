@@ -11,6 +11,7 @@ The repository is structured so you can:
 
 📚 At the moment, BLX includes: 
 - TOC (Table of Contents) package
+- Inline SVG package
 
 💡 Roadmap
 More packages will be introduced soon.
