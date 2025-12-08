@@ -27,8 +27,11 @@
         .filter(Boolean);
     }
 
+    // Overlay rules:
+    // - no prop → overlay everywhere
+    // - tablet → overlay on tablet + mobile
+    // - mobile → overlay on mobile only
     function overlayAllowed(props) {
-      // no prop → overlay everywhere
       if (!props.length) return true;
 
       if (props.includes('mobile')) {
@@ -77,7 +80,7 @@
     });
 
     /* -------------------------
-       PAIRING LOGIC
+       PAIRING
     -------------------------- */
 
     function findModal(trigger) {
@@ -90,10 +93,12 @@
       // 2. blx-id
       const id = trigger.getAttribute('blx-id');
       if (id) {
-        return document.querySelector(`[blx-el="modal-popup"][blx-id="${id}"]`);
+        return document.querySelector(
+          `[blx-el="modal-popup"][blx-id="${id}"]`
+        );
       }
 
-      // 3. next popup in DOM
+      // 3. next modal in DOM
       let next = trigger.nextElementSibling;
       while (next) {
         if (next.matches('[blx-el="modal-popup"]')) return next;
@@ -117,10 +122,10 @@
       trigger.addEventListener('click', () => {
         const props = getProps(trigger);
 
-        // overlay not allowed → do nothing (desktop CSS layout)
+        // Overlay not allowed → noop (desktop inline layout)
         if (!overlayAllowed(props)) return;
 
-        // move modal to body on demand
+        // Portal on demand
         if (modal.parentElement !== document.body) {
           document.body.appendChild(modal);
         }
@@ -135,23 +140,14 @@
     });
 
     /* -------------------------
-       CLOSE (BUTTON / BACKDROP)
+       CLOSE
     -------------------------- */
-
-    document.querySelectorAll('[blx-el="modal-close"]').forEach(closeEl => {
-      closeEl.addEventListener('click', () => {
-        const modal = closeEl.closest('[blx-el="modal-popup"]');
-        if (!modal) return;
-
-        closeModal(modal);
-      });
-    });
 
     function closeModal(modal) {
       modal.classList.remove(OPEN_CLASS);
       unlockScroll();
 
-      // restore original DOM position
+      // Restore original DOM position
       const pos = originalPosition.get(modal);
       if (pos?.parent) {
         pos.parent.insertBefore(modal, pos.next || null);
@@ -162,14 +158,24 @@
         .forEach(t => t.setAttribute('aria-expanded', 'false'));
     }
 
+    document.querySelectorAll('[blx-el="modal-close"]').forEach(closeEl => {
+      closeEl.addEventListener('click', () => {
+        const modal = closeEl.closest('[blx-el="modal-popup"]');
+        if (!modal) return;
+        closeModal(modal);
+      });
+    });
+
     /* -------------------------
-       ESC KEY
+       ESC KEY (overlay only)
     -------------------------- */
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
 
-      const modal = document.querySelector('[blx-el="modal-popup"].' + OPEN_CLASS);
+      const modal = document.querySelector(
+        '[blx-el="modal-popup"].' + OPEN_CLASS
+      );
       if (!modal) return;
 
       closeModal(modal);
@@ -180,14 +186,17 @@
     -------------------------- */
 
     function closeIfOverlayNoLongerAllowed() {
-      const modal = document.querySelector('[blx-el="modal-popup"].' + OPEN_CLASS);
+      const modal = document.querySelector(
+        '[blx-el="modal-popup"].' + OPEN_CLASS
+      );
       if (!modal) return;
 
-      const trigger = document.querySelector(`[aria-controls="${modal.id}"]`);
+      const trigger = document.querySelector(
+        `[aria-controls="${modal.id}"]`
+      );
       if (!trigger) return;
 
       const props = getProps(trigger);
-
       if (!overlayAllowed(props)) {
         closeModal(modal);
       }
@@ -196,5 +205,20 @@
     breakpoints.on('tablet', closeIfOverlayNoLongerAllowed);
     breakpoints.on('mobile', closeIfOverlayNoLongerAllowed);
   };
+
+  /* -------------------------
+     AUTO INIT
+  -------------------------- */
+
+  if (!window.__BLX_MODAL_INITIALISED__) {
+    window.__BLX_MODAL_INITIALISED__ = true;
+
+    // Run once on initial page load (even if script injected late)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', window.BLX_MODAL);
+    } else {
+      window.BLX_MODAL();
+    }
+  }
 
 })();
