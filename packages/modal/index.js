@@ -1,6 +1,6 @@
 // packages/modal/index.js
-// BLX Modal 
-// v.1.0.4
+// BLX Modal
+// v1.0.4
 
 (() => {
 
@@ -12,32 +12,38 @@
     }
 
     const { breakpoints } = window.BLX.utils;
+    const OPEN_CLASS = 'is-open';
+    const LOCK_CLASS = 'blx-scroll-lock';
 
     /* -------------------------
        HELPERS
     -------------------------- */
 
     function getProps(el) {
-      return (el.getAttribute('blx-prop') || '')
+      return (el?.getAttribute('blx-prop') || '')
         .split(',')
         .map(p => p.trim().toLowerCase())
         .filter(Boolean);
     }
 
     function breakpointAllows(props) {
-      if (props.includes('mobile')) {
-        return breakpoints.is('mobile');
-      }
+      if (props.includes('mobile')) return breakpoints.is('mobile');
+      if (props.includes('tablet')) return breakpoints.is('tablet');
+      return true;
+    }
 
-      if (props.includes('tablet')) {
-        return breakpoints.is('tablet');
-      }
+    function lockScroll() {
+      document.documentElement.classList.add(LOCK_CLASS);
+      document.documentElement.style.overflow = 'hidden';
+    }
 
-      return true; // default: all breakpoints
+    function unlockScroll() {
+      document.documentElement.classList.remove(LOCK_CLASS);
+      document.documentElement.style.overflow = '';
     }
 
     /* -------------------------
-       CACHE ELEMENTS
+       ELEMENTS
     -------------------------- */
 
     const triggers = document.querySelectorAll('[blx-el="modal-trigger"]');
@@ -45,76 +51,100 @@
 
     /* -------------------------
        MOVE MODALS TO BODY
-       + ASSIGN UNIQUE IDS
+       + IDS
     -------------------------- */
 
-    modals.forEach((modal, index) => {
-      const id = `blx-modal-${index + 1}`;
-      modal.setAttribute('id', id);
-
-      const parentItem = modal.closest('.w-dyn-item');
-      const trigger = parentItem?.querySelector('[blx-el="modal-trigger"]');
-
-      if (trigger) {
-        trigger.setAttribute('aria-controls', id);
-        trigger.setAttribute('aria-expanded', 'false');
-      }
-
+    modals.forEach((modal, i) => {
+      if (!modal.id) modal.id = `blx-modal-${i + 1}`;
       document.body.appendChild(modal);
     });
 
     /* -------------------------
-       OPEN MODAL
+       PAIRING
+    -------------------------- */
+
+    function findModal(trigger) {
+      // 1. modal-group
+      const group = trigger.closest('[blx-el="modal-group"]');
+      if (group) {
+        return group.querySelector('[blx-el="modal-popup"]');
+      }
+
+      // 2. blx-id
+      const id = trigger.getAttribute('blx-id');
+      if (id) {
+        return document.querySelector(`[blx-el="modal-popup"][blx-id="${id}"]`);
+      }
+
+      // 3. next in DOM
+      let next = trigger.nextElementSibling;
+      while (next) {
+        if (next.matches('[blx-el="modal-popup"]')) return next;
+        next = next.nextElementSibling;
+      }
+
+      return null;
+    }
+
+    /* -------------------------
+       OPEN
     -------------------------- */
 
     triggers.forEach(trigger => {
+      const modal = findModal(trigger);
+      if (!modal) return;
+
+      trigger.setAttribute('aria-controls', modal.id);
+      trigger.setAttribute('aria-expanded', 'false');
+
       trigger.addEventListener('click', () => {
         const props = getProps(trigger);
         if (!breakpointAllows(props)) return;
 
-        const modalId = trigger.getAttribute('aria-controls');
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
-
-        modal.classList.add('is-open');
+        modal.classList.add(OPEN_CLASS);
         trigger.setAttribute('aria-expanded', 'true');
+
+        if (props.includes('scroll-lock')) {
+          lockScroll();
+        }
       });
     });
 
     /* -------------------------
-       CLOSE MODAL (BUTTON)
+       CLOSE
     -------------------------- */
 
-    document.querySelectorAll('[blx-el="modal-close"]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const modal = btn.closest('[blx-el="modal-popup"]');
+    document.querySelectorAll('[blx-el="modal-close"]').forEach(closeEl => {
+      closeEl.addEventListener('click', () => {
+        const modal = closeEl.closest('[blx-el="modal-popup"]');
         if (!modal) return;
 
-        modal.classList.remove('is-open');
+        modal.classList.remove(OPEN_CLASS);
 
-        const id = modal.getAttribute('id');
         document
-          .querySelectorAll(`[aria-controls="${id}"]`)
+          .querySelectorAll(`[aria-controls="${modal.id}"]`)
           .forEach(t => t.setAttribute('aria-expanded', 'false'));
+
+        unlockScroll();
       });
     });
 
     /* -------------------------
-       CLOSE MODAL (OVERLAY)
+       ESC
     -------------------------- */
 
-    document.querySelectorAll('[blx-el="modal-overlay"]').forEach(overlay => {
-      overlay.addEventListener('click', () => {
-        const modal = overlay.closest('[blx-el="modal-popup"]');
-        if (!modal) return;
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
 
-        modal.classList.remove('is-open');
+      const modal = document.querySelector('[blx-el="modal-popup"].is-open');
+      if (!modal) return;
 
-        const id = modal.getAttribute('id');
-        document
-          .querySelectorAll(`[aria-controls="${id}"]`)
-          .forEach(t => t.setAttribute('aria-expanded', 'false'));
-      });
+      modal.classList.remove(OPEN_CLASS);
+      unlockScroll();
+
+      document
+        .querySelectorAll(`[aria-controls="${modal.id}"]`)
+        .forEach(t => t.setAttribute('aria-expanded', 'false'));
     });
   };
 
