@@ -1,31 +1,30 @@
+// packages/index.js
 // BLX Global Loader
-// Version: 1.0.3
+// Version: 1.0.4
 
+window.BLX = window.BLX || {};
+window.BLX.utils = window.BLX.utils || {};
+
+// Bundled imports (important)
 import { BLX_TOC } from './toc/index.js';
 import './inline-svg/index.js';
-// future imports:
-// import { BLX_SLIDER } from './slider/index.js';
-// import { BLX_ACCORDION } from './accordion/index.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
+  // TOC
+  if (document.querySelector('[blx-el="toc"]')) {
+    BLX_TOC();
+  }
 
-// TOC
-if (document.querySelector('[blx-el="toc"]')) {
-  BLX_TOC();
+  // Inline SVG
+  if (document.querySelector('[blx-el="inline-svg"]')) {
+    window.BLX?.inlineSVG?.();
+  }
+
+  // Future packages here
 }
 
-// Inline SVG
-if (document.querySelector('[blx-el="inline-svg"]')) {
-window.BLX?.inlineSVG?.();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
 }
-
-// SLIDER (example)
-// if (document.querySelector('[blx-el="slider"]')) {
-//   BLX_SLIDER();
-// }
-
-// ACCORDION (example)
-// if (document.querySelector('[blx-el="accordion"]')) {
-//   BLX_ACCORDION();
-// }
-});
