@@ -8,6 +8,7 @@ window.BLX.utils = window.BLX.utils || {};
 // Bundled imports (important)
 import { BLX_TOC } from './toc/index.js';
 import './inline-svg/index.js';
+import './modal/index.js';
 
 function init() {
   // TOC
@@ -20,7 +21,9 @@ function init() {
     window.BLX?.inlineSVG?.();
   }
 
-  // Future packages here
+  // Modal
+  if (document.querySelector('[blx-el="modal-trigger"]')) {
+  window.BLX_MODAL();
 }
 
 if (document.readyState === 'loading') {
