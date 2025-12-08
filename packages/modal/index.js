@@ -1,6 +1,6 @@
 // packages/modal/index.js
 // BLX Modal
-// v1.0.4
+// v1.0.5
 
 (() => {
 
@@ -12,6 +12,7 @@
     }
 
     const { breakpoints } = window.BLX.utils;
+
     const OPEN_CLASS = 'is-open';
     const LOCK_CLASS = 'blx-scroll-lock';
 
@@ -26,9 +27,18 @@
         .filter(Boolean);
     }
 
-    function breakpointAllows(props) {
-      if (props.includes('mobile')) return breakpoints.is('mobile');
-      if (props.includes('tablet')) return breakpoints.is('tablet');
+    function overlayAllowed(props) {
+      // no prop → overlay everywhere
+      if (!props.length) return true;
+
+      if (props.includes('mobile')) {
+        return breakpoints.is('mobile');
+      }
+
+      if (props.includes('tablet')) {
+        return breakpoints.is('tablet');
+      }
+
       return true;
     }
 
@@ -50,17 +60,24 @@
     const modals   = document.querySelectorAll('[blx-el="modal-popup"]');
 
     /* -------------------------
-       MOVE MODALS TO BODY
-       + IDS
+       STORE ORIGINAL POSITIONS
     -------------------------- */
 
+    const originalPosition = new WeakMap();
+
     modals.forEach((modal, i) => {
-      if (!modal.id) modal.id = `blx-modal-${i + 1}`;
-      document.body.appendChild(modal);
+      if (!modal.id) {
+        modal.id = `blx-modal-${i + 1}`;
+      }
+
+      originalPosition.set(modal, {
+        parent: modal.parentElement,
+        next: modal.nextElementSibling
+      });
     });
 
     /* -------------------------
-       PAIRING
+       PAIRING LOGIC
     -------------------------- */
 
     function findModal(trigger) {
@@ -76,7 +93,7 @@
         return document.querySelector(`[blx-el="modal-popup"][blx-id="${id}"]`);
       }
 
-      // 3. next in DOM
+      // 3. next popup in DOM
       let next = trigger.nextElementSibling;
       while (next) {
         if (next.matches('[blx-el="modal-popup"]')) return next;
@@ -99,7 +116,14 @@
 
       trigger.addEventListener('click', () => {
         const props = getProps(trigger);
-        if (!breakpointAllows(props)) return;
+
+        // overlay not allowed → do nothing (desktop CSS layout)
+        if (!overlayAllowed(props)) return;
+
+        // move modal to body on demand
+        if (modal.parentElement !== document.body) {
+          document.body.appendChild(modal);
+        }
 
         modal.classList.add(OPEN_CLASS);
         trigger.setAttribute('aria-expanded', 'true');
@@ -111,7 +135,7 @@
     });
 
     /* -------------------------
-       CLOSE
+       CLOSE (BUTTON / BACKDROP)
     -------------------------- */
 
     document.querySelectorAll('[blx-el="modal-close"]').forEach(closeEl => {
@@ -119,33 +143,58 @@
         const modal = closeEl.closest('[blx-el="modal-popup"]');
         if (!modal) return;
 
-        modal.classList.remove(OPEN_CLASS);
-
-        document
-          .querySelectorAll(`[aria-controls="${modal.id}"]`)
-          .forEach(t => t.setAttribute('aria-expanded', 'false'));
-
-        unlockScroll();
+        closeModal(modal);
       });
     });
 
+    function closeModal(modal) {
+      modal.classList.remove(OPEN_CLASS);
+      unlockScroll();
+
+      // restore original DOM position
+      const pos = originalPosition.get(modal);
+      if (pos?.parent) {
+        pos.parent.insertBefore(modal, pos.next || null);
+      }
+
+      document
+        .querySelectorAll(`[aria-controls="${modal.id}"]`)
+        .forEach(t => t.setAttribute('aria-expanded', 'false'));
+    }
+
     /* -------------------------
-       ESC
+       ESC KEY
     -------------------------- */
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
 
-      const modal = document.querySelector('[blx-el="modal-popup"].is-open');
+      const modal = document.querySelector('[blx-el="modal-popup"].' + OPEN_CLASS);
       if (!modal) return;
 
-      modal.classList.remove(OPEN_CLASS);
-      unlockScroll();
-
-      document
-        .querySelectorAll(`[aria-controls="${modal.id}"]`)
-        .forEach(t => t.setAttribute('aria-expanded', 'false'));
+      closeModal(modal);
     });
+
+    /* -------------------------
+       CLOSE WHEN LEAVING OVERLAY
+    -------------------------- */
+
+    function closeIfOverlayNoLongerAllowed() {
+      const modal = document.querySelector('[blx-el="modal-popup"].' + OPEN_CLASS);
+      if (!modal) return;
+
+      const trigger = document.querySelector(`[aria-controls="${modal.id}"]`);
+      if (!trigger) return;
+
+      const props = getProps(trigger);
+
+      if (!overlayAllowed(props)) {
+        closeModal(modal);
+      }
+    }
+
+    breakpoints.on('tablet', closeIfOverlayNoLongerAllowed);
+    breakpoints.on('mobile', closeIfOverlayNoLongerAllowed);
   };
 
 })();
