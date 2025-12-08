@@ -34,13 +34,8 @@
     function overlayAllowed(props) {
       if (!props.length) return true;
 
-      if (props.includes('mobile')) {
-        return breakpoints.is('mobile');
-      }
-
-      if (props.includes('tablet')) {
-        return breakpoints.is('tablet');
-      }
+      if (props.includes('mobile')) return breakpoints.is('mobile');
+      if (props.includes('tablet')) return breakpoints.is('tablet');
 
       return true;
     }
@@ -85,6 +80,9 @@
         parent: modal.parentElement,
         next: modal.nextElementSibling
       });
+
+      // Default hidden for a11y
+      modal.setAttribute('aria-hidden', 'true');
     });
 
     /* -------------------------
@@ -124,7 +122,7 @@
     let activeTrapHandler = null;
 
     /* -------------------------
-       OPEN
+       OPEN (overlay only)
     -------------------------- */
 
     triggers.forEach(trigger => {
@@ -144,6 +142,11 @@
         if (modal.parentElement !== document.body) {
           document.body.appendChild(modal);
         }
+
+        /* ---- Dialog semantics (overlay only) ---- */
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-hidden', 'false');
 
         modal.classList.add(OPEN_CLASS);
         trigger.setAttribute('aria-expanded', 'true');
@@ -191,19 +194,24 @@
       modal.classList.remove(OPEN_CLASS);
       unlockScroll();
 
-      // Remove focus trap
+      /* ---- Remove dialog semantics ---- */
+      modal.removeAttribute('role');
+      modal.removeAttribute('aria-modal');
+      modal.setAttribute('aria-hidden', 'true');
+
+      /* ---- Remove focus trap ---- */
       if (activeTrapHandler) {
         document.removeEventListener('keydown', activeTrapHandler);
         activeTrapHandler = null;
       }
 
-      // Restore focus
+      /* ---- Restore focus ---- */
       if (lastFocusedElement) {
         lastFocusedElement.focus();
         lastFocusedElement = null;
       }
 
-      // Restore original DOM position
+      /* ---- Restore original DOM position ---- */
       const pos = originalPosition.get(modal);
       if (pos?.parent) {
         pos.parent.insertBefore(modal, pos.next || null);
