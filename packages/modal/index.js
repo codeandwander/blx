@@ -1,6 +1,6 @@
 // packages/modal/index.js
 // BLX Modal
-// v1.0.5
+// v1.0.6
 
 (() => {
 
@@ -53,6 +53,14 @@
     function unlockScroll() {
       document.documentElement.classList.remove(LOCK_CLASS);
       document.documentElement.style.overflow = '';
+    }
+
+    function getFocusableElements(container) {
+      return Array.from(
+        container.querySelectorAll(
+          'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(el => !el.hasAttribute('disabled'));
     }
 
     /* -------------------------
@@ -109,6 +117,13 @@
     }
 
     /* -------------------------
+       FOCUS TRAP STATE
+    -------------------------- */
+
+    let lastFocusedElement = null;
+    let activeTrapHandler = null;
+
+    /* -------------------------
        OPEN
     -------------------------- */
 
@@ -136,6 +151,35 @@
         if (props.includes('scroll-lock')) {
           lockScroll();
         }
+
+        /* ---- Focus trap ---- */
+
+        lastFocusedElement = trigger;
+
+        const focusable = getFocusableElements(modal);
+        if (focusable.length) {
+          focusable[0].focus();
+        }
+
+        activeTrapHandler = (e) => {
+          if (e.key !== 'Tab') return;
+
+          const elements = getFocusableElements(modal);
+          if (!elements.length) return;
+
+          const first = elements[0];
+          const last  = elements[elements.length - 1];
+
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        };
+
+        document.addEventListener('keydown', activeTrapHandler);
       });
     });
 
@@ -146,6 +190,18 @@
     function closeModal(modal) {
       modal.classList.remove(OPEN_CLASS);
       unlockScroll();
+
+      // Remove focus trap
+      if (activeTrapHandler) {
+        document.removeEventListener('keydown', activeTrapHandler);
+        activeTrapHandler = null;
+      }
+
+      // Restore focus
+      if (lastFocusedElement) {
+        lastFocusedElement.focus();
+        lastFocusedElement = null;
+      }
 
       // Restore original DOM position
       const pos = originalPosition.get(modal);
@@ -207,7 +263,7 @@
   };
 
   /* -------------------------
-     AUTO INIT
+     AUTO INIT (TOC STYLE)
   -------------------------- */
 
   if (!window.__BLX_MODAL_INITIALISED__) {
