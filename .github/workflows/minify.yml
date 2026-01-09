@@ -30,10 +30,8 @@ jobs:
       
       - name: Create dist directory structure
         run: |
-          mkdir -p dist/core
-          mkdir -p dist/packages/toc
-          mkdir -p dist/packages/inline-svg
-          mkdir -p dist/packages/modal
+          # Dynamically create dist directories based on source structure
+          find core packages -type f -name '*.js' -exec dirname {} \; | sed 's|^|dist/|' | sort -u | xargs mkdir -p
       
       - name: Minify core files
         run: |
@@ -43,30 +41,22 @@ jobs:
       
       - name: Minify package files
         run: |
-          # Minify TOC package
-          if [ -f packages/toc/index.js ]; then
-            terser packages/toc/index.js -c -m --comments false -o dist/packages/toc/index.min.js
-          fi
-          
-          # Minify inline-svg package
-          if [ -f packages/inline-svg/index.js ]; then
-            terser packages/inline-svg/index.js -c -m --comments false -o dist/packages/inline-svg/index.min.js
-          fi
-          
-          # Minify modal package
-          if [ -f packages/modal/index.js ]; then
-            terser packages/modal/index.js -c -m --comments false -o dist/packages/modal/index.min.js
-          fi
+          # Dynamically process all package directories
+          for dir in packages/*/; do
+            if [ -f "$dir/index.js" ]; then
+              terser "$dir/index.js" -c -m --comments false -o "dist/$dir/index.min.js"
+            fi
+          done
       
       - name: Commit minified files
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add dist/
-          git diff --staged --quiet || git commit -m "Auto-minify JavaScript files"
+          git diff --staged --quiet || git commit -m "Auto-minify: ${{ github.event_name }} on ${{ github.ref_name }}"
       
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@v0.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
