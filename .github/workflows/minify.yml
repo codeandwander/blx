@@ -13,6 +13,8 @@ on:
 jobs:
   minify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to commit and push minified files
     
     steps:
       - name: Checkout repository
