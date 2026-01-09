@@ -1,0 +1,72 @@
+name: Minify JavaScript Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'core/**/*.js'
+      - 'packages/**/*.js'
+  release:
+    types: [published]
+
+jobs:
+  minify:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install terser
+        run: npm install -g terser
+      
+      - name: Create dist directory structure
+        run: |
+          mkdir -p dist/core
+          mkdir -p dist/packages/toc
+          mkdir -p dist/packages/inline-svg
+          mkdir -p dist/packages/modal
+      
+      - name: Minify core files
+        run: |
+          if [ -f core/index.js ]; then
+            terser core/index.js -c -m --comments false -o dist/core/index.min.js
+          fi
+      
+      - name: Minify package files
+        run: |
+          # Minify TOC package
+          if [ -f packages/toc/index.js ]; then
+            terser packages/toc/index.js -c -m --comments false -o dist/packages/toc/index.min.js
+          fi
+          
+          # Minify inline-svg package
+          if [ -f packages/inline-svg/index.js ]; then
+            terser packages/inline-svg/index.js -c -m --comments false -o dist/packages/inline-svg/index.min.js
+          fi
+          
+          # Minify modal package
+          if [ -f packages/modal/index.js ]; then
+            terser packages/modal/index.js -c -m --comments false -o dist/packages/modal/index.min.js
+          fi
+      
+      - name: Commit minified files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add dist/
+          git diff --staged --quiet || git commit -m "Auto-minify JavaScript files"
+      
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
