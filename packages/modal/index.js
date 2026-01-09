@@ -1,9 +1,9 @@
-// packages/modal/index.js
 // BLX Modal
-// v1.0.6
+// Version: 1.0.6
 
 (() => {
 
+  // Reusable function — exposed globally
   window.BLX_MODAL = function () {
 
     if (!window.BLX || !window.BLX.utils || !window.BLX.utils.breakpoints) {
@@ -270,19 +270,11 @@
     breakpoints.on('mobile', closeIfOverlayNoLongerAllowed);
   };
 
-  /* -------------------------
-     AUTO INIT (TOC STYLE)
-  -------------------------- */
-
-  if (!window.__BLX_MODAL_INITIALISED__) {
-    window.__BLX_MODAL_INITIALISED__ = true;
-
-    // Run once on initial page load (even if script injected late)
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', window.BLX_MODAL);
-    } else {
-      window.BLX_MODAL();
-    }
+  // Run once on initial page load (even if script injected late)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.BLX_MODAL);
+  } else {
+    window.BLX_MODAL();
   }
 
 })();

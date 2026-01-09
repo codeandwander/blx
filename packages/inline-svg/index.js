@@ -2,9 +2,9 @@
 // Version: 1.0.6
 
 (() => {
-  window.BLX = window.BLX || {};
 
-  window.BLX.inlineSVG = function () {
+  // Reusable function — exposed globally
+  window.BLX_INLINE_SVG = function () {
     const targets = document.querySelectorAll('[blx-el="inline-svg"]');
     if (!targets.length) return;
 
@@ -76,7 +76,11 @@
     }
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    window.BLX.inlineSVG();
-  });
+  // Run once on initial page load (even if script injected late)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', window.BLX_INLINE_SVG);
+  } else {
+    window.BLX_INLINE_SVG();
+  }
+
 })();
