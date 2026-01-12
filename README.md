@@ -18,26 +18,26 @@ The repository is structured so you can:
 
 ### Loading via jsDelivr CDN
 
-All packages are available via jsDelivr CDN, which automatically minifies and optimizes them for delivery. You can load them individually or all together.
+All packages are available via jsDelivr CDN, which automatically minifies them when you use the `.min.js` extension. You can load them individually or all together.
 
 **Load individual packages (recommended):**
 ```html
 <!-- Core utilities (required for modal package) -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/core/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/core/index.min.js"></script>
 
 <!-- TOC package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/toc/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/toc/index.min.js"></script>
 
 <!-- Inline SVG package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/inline-svg/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/inline-svg/index.min.js"></script>
 
 <!-- Modal package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/modal/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/modal/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@v1.0.5/packages/toc/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@v1.0.5/packages/toc/index.min.js"></script>
 ```
 
 ### File Sizes
