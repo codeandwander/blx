@@ -18,34 +18,34 @@ The repository is structured so you can:
 
 ### Loading via jsDelivr CDN
 
-All packages are automatically minified and available via jsDelivr. You can load them individually or all together.
+All packages are available via jsDelivr CDN, which automatically minifies and optimizes them for delivery. You can load them individually or all together.
 
 **Load individual packages (recommended):**
 ```html
 <!-- Core utilities (required for modal package) -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/dist/core/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/core/index.js"></script>
 
 <!-- TOC package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/dist/packages/toc/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/toc/index.js"></script>
 
 <!-- Inline SVG package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/dist/packages/inline-svg/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/inline-svg/index.js"></script>
 
 <!-- Modal package -->
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/dist/packages/modal/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/modal/index.js"></script>
 ```
 
 **Or pin to a specific version:**
 ```html
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@v1.0.5/dist/packages/toc/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@v1.0.5/packages/toc/index.js"></script>
 ```
 
 ### File Sizes
-The minified packages are optimized for fast loading:
-- Core utilities: ~446 bytes
-- TOC package: ~1.6KB
-- Inline SVG package: ~1.1KB
-- Modal package: ~3.2KB
+The source packages are lightweight and automatically minified by jsDelivr on delivery:
+- Core utilities: ~849 bytes
+- TOC package: ~3.5KB
+- Inline SVG package: ~2.5KB
+- Modal package: ~7.4KB
 
 💡 Roadmap
 More packages will be introduced soon.
