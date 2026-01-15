@@ -57,6 +57,58 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Social Share package: ~1.5KB
 - Copy to Clipboard package: ~2.9KB
 
+## 📦 Package Documentation
+
+### Copy to Clipboard
+
+The Copy to Clipboard package enables users to copy URLs to their clipboard with visual tooltip feedback.
+
+**Basic Usage:**
+```html
+<!-- Add the script -->
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/copy-to-clipboard/index.min.js"></script>
+
+<!-- Basic button - copies current page URL -->
+<button blx-el="copy-to-clipboard">Copy URL</button>
+
+<!-- With custom URL -->
+<button blx-el="copy-to-clipboard" data-copy-url="https://example.com">Copy Link</button>
+
+<!-- With custom tooltip message -->
+<button blx-el="copy-to-clipboard" data-tooltip-text="Link copied! 🎉">Share</button>
+```
+
+**Attributes:**
+- `blx-el="copy-to-clipboard"` - Required attribute to enable the functionality
+- `data-copy-url` - Optional. URL to copy (defaults to current page URL)
+- `data-tooltip-text` - Optional. Custom tooltip message (defaults to "Copied to clipboard")
+
+**Customizing Tooltip Styles:**
+
+Option 1 - Using CSS (recommended):
+```css
+[blx-prop="copy-tooltip"] {
+  background: #007bff !important;
+  color: #fff !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  /* Add any custom styles */
+}
+```
+
+Option 2 - Pre-styled element in Webflow:
+```html
+<button blx-el="copy-to-clipboard">
+  Copy URL
+  <div blx-prop="copy-tooltip" style="display: none; /* your custom styles */">
+    Copied!
+  </div>
+</button>
+```
+
+When you create a pre-styled tooltip element, the script will detect and use it instead of creating a new one. This allows you to style the tooltip directly in Webflow Designer.
+
 💡 Roadmap
 More packages will be introduced soon.
 The structure is designed so each feature comes as a clean, independent module with:
