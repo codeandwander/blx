@@ -9,6 +9,7 @@ window.BLX.utils = window.BLX.utils || {};
 import './toc/index.js';
 import './inline-svg/index.js';
 import './modal/index.js';
+import './social-share/index.js';
 
 function init() {
   // TOC
@@ -24,6 +25,11 @@ function init() {
   // Modal
   if (document.querySelector('[blx-el="modal-trigger"]')) {
     window.BLX_MODAL?.();
+  }
+
+  // Social Share
+  if (document.querySelector('[blx-el="social-share"]')) {
+    window.BLX_SOCIAL_SHARE?.();
   }
 }
 
