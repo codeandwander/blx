@@ -5,6 +5,7 @@
 
   // Configuration
   const TOOLTIP_DISPLAY_DURATION = 2000; // milliseconds
+  const TOOLTIP_TRANSITION_DURATION = 300; // milliseconds - must match CSS transition
 
   // Reusable function — exposed globally
   window.BLX_COPY_TO_CLIPBOARD = function () {
@@ -62,13 +63,14 @@
 
   function showTooltip(el, text) {
     // Look for existing tooltip element in multiple locations and with different attributes
-    let tooltip = el.querySelector('[blx-prop="copy-tooltip"]') || 
-                  el.querySelector('[cw-copy-alert]');
+    let tooltip = (el.querySelector('[blx-prop="copy-tooltip"]') || 
+                    el.querySelector('[cw-copy-alert]'));
     
     // If not found as a child, check in parent container (for cases where tooltip is a sibling)
     if (!tooltip && el.parentElement) {
-      tooltip = el.parentElement.querySelector('[blx-prop="copy-tooltip"]') ||
-                el.parentElement.querySelector('[cw-copy-alert]');
+      const parent = el.parentElement;
+      tooltip = (parent.querySelector('[blx-prop="copy-tooltip"]') ||
+                 parent.querySelector('[cw-copy-alert]'));
     }
     
     if (!tooltip) {
@@ -108,7 +110,7 @@
       // Preserve any existing transform and add translateX
       const existingTransform = computedStyle.transform;
       if (existingTransform && existingTransform !== 'none') {
-        tooltip.style.setProperty('transform', existingTransform + ' translateX(-50%)', 'important');
+        tooltip.style.setProperty('transform', `${existingTransform} translateX(-50%)`, 'important');
       } else {
         tooltip.style.setProperty('transform', 'translateX(-50%)', 'important');
       }
@@ -121,10 +123,10 @@
       setTimeout(() => {
         // Check computed style to ensure opacity is actually 0
         const currentOpacity = window.getComputedStyle(tooltip).opacity;
-        if (currentOpacity === '0') {
+        if (parseFloat(currentOpacity) === 0) {
           tooltip.style.setProperty('display', 'none', 'important');
         }
-      }, 300); // Match the transition duration
+      }, TOOLTIP_TRANSITION_DURATION);
     }, TOOLTIP_DISPLAY_DURATION);
   }
 
