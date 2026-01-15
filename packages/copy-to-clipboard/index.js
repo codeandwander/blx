@@ -61,8 +61,15 @@
   }
 
   function showTooltip(el, text) {
-    // Look for existing tooltip element
-    let tooltip = el.querySelector('[blx-prop="copy-tooltip"]');
+    // Look for existing tooltip element in multiple locations and with different attributes
+    let tooltip = el.querySelector('[blx-prop="copy-tooltip"]') || 
+                  el.querySelector('[cw-copy-alert]');
+    
+    // If not found as a child, check in parent container (for cases where tooltip is a sibling)
+    if (!tooltip && el.parentElement) {
+      tooltip = el.parentElement.querySelector('[blx-prop="copy-tooltip"]') ||
+                el.parentElement.querySelector('[cw-copy-alert]');
+    }
     
     if (!tooltip) {
       // Create tooltip if it doesn't exist
@@ -75,11 +82,38 @@
 
     // Set text and show
     tooltip.textContent = text;
-    tooltip.style.opacity = '1';
+    
+    // Use setProperty with 'important' to override any existing CSS
+    tooltip.style.setProperty('display', 'block', 'important');
+    tooltip.style.setProperty('opacity', '1', 'important');
+    tooltip.style.setProperty('pointer-events', 'none', 'important');
+    tooltip.style.setProperty('z-index', '1000', 'important');
+    
+    // Apply positioning if tooltip doesn't have proper positioning
+    const computedStyle = window.getComputedStyle(tooltip);
+    if (computedStyle.position !== 'fixed' && computedStyle.position !== 'absolute') {
+      tooltip.style.setProperty('position', 'absolute', 'important');
+    }
+    
+    // Ensure positioning values are set for visibility
+    if (computedStyle.top === 'auto' && computedStyle.bottom === 'auto') {
+      tooltip.style.setProperty('bottom', '100%', 'important');
+      tooltip.style.setProperty('margin-bottom', '8px', 'important');
+    }
+    if (computedStyle.left === 'auto' && computedStyle.right === 'auto') {
+      tooltip.style.setProperty('left', '50%', 'important');
+      tooltip.style.setProperty('transform', 'translateX(-50%)', 'important');
+    }
 
     // Hide after configured duration
     setTimeout(() => {
-      tooltip.style.opacity = '0';
+      tooltip.style.setProperty('opacity', '0', 'important');
+      // Optionally hide after fade out
+      setTimeout(() => {
+        if (tooltip.style.opacity === '0') {
+          tooltip.style.setProperty('display', 'none', 'important');
+        }
+      }, 300); // Match the transition duration
     }, TOOLTIP_DISPLAY_DURATION);
   }
 
