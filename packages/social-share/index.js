@@ -25,8 +25,8 @@
     );
 
     const shareMap = {
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`,
-      twitter: `https://twitter.com/intent/tweet?url=${pageUrl}&text=${title}`,
+      linkedin: `https://www.linkedin.com/shareArticle?mini=true&url=${pageUrl}&title=${title}`,
+      twitter: `https://twitter.com/intent/tweet?text=${title}&url=${pageUrl}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`,
       email: `mailto:?subject=${title}&body=${description}%0A${pageUrl}`,
     };
@@ -41,8 +41,23 @@
       if (!prop || !shareMap[prop]) return;
 
       target.href = shareMap[prop];
-      target.setAttribute("target", "_blank");
       target.setAttribute("rel", "noopener noreferrer");
+      
+      // Open share links in popup window instead of new tab (except email)
+      if (prop !== 'email') {
+        target.addEventListener('click', function(e) {
+          e.preventDefault();
+          const width = 600;
+          const height = 600;
+          const left = (window.screen.width - width) / 2;
+          const top = (window.screen.height - height) / 2;
+          window.open(
+            this.href,
+            'share-dialog',
+            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
+          );
+        });
+      }
     });
   }
 
