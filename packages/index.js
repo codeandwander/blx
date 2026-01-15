@@ -1,6 +1,6 @@
 // packages/index.js
 // BLX Global Loader
-// Version: 1.0.4
+// Version: 1.0.5
 
 window.BLX = window.BLX || {};
 window.BLX.utils = window.BLX.utils || {};
@@ -10,6 +10,7 @@ import './toc/index.js';
 import './inline-svg/index.js';
 import './modal/index.js';
 import './social-share/index.js';
+import './copy-to-clipboard/index.js';
 
 function init() {
   // TOC
@@ -30,6 +31,11 @@ function init() {
   // Social Share
   if (document.querySelector('[blx-el="social-share"]')) {
     window.BLX_SOCIAL_SHARE?.();
+  }
+
+  // Copy to Clipboard
+  if (document.querySelector('[blx-el="copy-to-clipboard"]')) {
+    window.BLX_COPY_TO_CLIPBOARD?.();
   }
 }
 
