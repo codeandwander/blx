@@ -61,6 +61,10 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 
 Each package has its own detailed documentation. Click the links below to learn more:
 
+- **[TOC (Table of Contents)](packages/toc/)** - Automatically generate navigable table of contents from headings
+- **[Inline SVG](packages/inline-svg/)** - Replace img tags with inline SVG for CSS styling
+- **[Modal](packages/modal/)** - Accessible modal overlays with focus trapping and scroll locking
+- **[Social Share](packages/social-share/)** - Share links for LinkedIn, Twitter, Facebook, and Email
 - **[Copy to Clipboard](packages/copy-to-clipboard/)** - Copy URLs to clipboard with tooltip feedback
 
 💡 Roadmap
