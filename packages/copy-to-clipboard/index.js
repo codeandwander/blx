@@ -5,6 +5,7 @@
 
   // Configuration
   const TOOLTIP_DISPLAY_DURATION = 2000; // milliseconds
+  const TOOLTIP_TRANSITION_DURATION = 300; // milliseconds - must match CSS transition
 
   // Reusable function — exposed globally
   window.BLX_COPY_TO_CLIPBOARD = function () {
@@ -61,8 +62,16 @@
   }
 
   function showTooltip(el, text) {
-    // Look for existing tooltip element
-    let tooltip = el.querySelector('[blx-prop="copy-tooltip"]');
+    // Look for existing tooltip element in multiple locations and with different attributes
+    let tooltip = (el.querySelector('[blx-prop="copy-tooltip"]') || 
+                    el.querySelector('[cw-copy-alert]'));
+    
+    // If not found as a child, check in parent container (for cases where tooltip is a sibling)
+    if (!tooltip && el.parentElement) {
+      const parent = el.parentElement;
+      tooltip = (parent.querySelector('[blx-prop="copy-tooltip"]') ||
+                 parent.querySelector('[cw-copy-alert]'));
+    }
     
     if (!tooltip) {
       // Create tooltip if it doesn't exist
@@ -75,11 +84,49 @@
 
     // Set text and show
     tooltip.textContent = text;
-    tooltip.style.opacity = '1';
+    
+    // Use setProperty with 'important' to override any existing CSS
+    tooltip.style.setProperty('display', 'block', 'important');
+    tooltip.style.setProperty('opacity', '1', 'important');
+    tooltip.style.setProperty('pointer-events', 'none', 'important');
+    tooltip.style.setProperty('z-index', '1000', 'important');
+    
+    // Apply positioning if tooltip doesn't have proper positioning
+    const computedStyle = window.getComputedStyle(tooltip);
+    if (computedStyle.position !== 'fixed' && computedStyle.position !== 'absolute') {
+      tooltip.style.setProperty('position', 'absolute', 'important');
+    }
+    
+    // Ensure positioning values are set for visibility
+    const hasTopOrBottom = computedStyle.top !== 'auto' || computedStyle.bottom !== 'auto';
+    const hasLeftOrRight = computedStyle.left !== 'auto' || computedStyle.right !== 'auto';
+    
+    if (!hasTopOrBottom) {
+      tooltip.style.setProperty('bottom', '100%', 'important');
+      tooltip.style.setProperty('margin-bottom', '8px', 'important');
+    }
+    if (!hasLeftOrRight) {
+      tooltip.style.setProperty('left', '50%', 'important');
+      // Preserve any existing transform and add translateX
+      const existingTransform = computedStyle.transform;
+      if (existingTransform && existingTransform !== 'none') {
+        tooltip.style.setProperty('transform', `${existingTransform} translateX(-50%)`, 'important');
+      } else {
+        tooltip.style.setProperty('transform', 'translateX(-50%)', 'important');
+      }
+    }
 
     // Hide after configured duration
     setTimeout(() => {
-      tooltip.style.opacity = '0';
+      tooltip.style.setProperty('opacity', '0', 'important');
+      // Optionally hide after fade out
+      setTimeout(() => {
+        // Check computed style to ensure opacity is actually 0
+        const currentOpacity = window.getComputedStyle(tooltip).opacity;
+        if (parseFloat(currentOpacity) === 0) {
+          tooltip.style.setProperty('display', 'none', 'important');
+        }
+      }, TOOLTIP_TRANSITION_DURATION);
     }, TOOLTIP_DISPLAY_DURATION);
   }
 
