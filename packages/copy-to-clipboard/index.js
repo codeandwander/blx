@@ -3,6 +3,9 @@
 
 (() => {
 
+  // Configuration
+  const TOOLTIP_DISPLAY_DURATION = 2000; // milliseconds
+
   // Reusable function — exposed globally
   window.BLX_COPY_TO_CLIPBOARD = function () {
     const elements = document.querySelectorAll('[blx-el="copy-to-clipboard"]');
@@ -12,6 +15,10 @@
   };
 
   function initCopyToClipboard(el) {
+    // Prevent duplicate initialization
+    if (el.dataset.blxCopyInitialized) return;
+    el.dataset.blxCopyInitialized = 'true';
+
     const urlToCopy = el.dataset.copyUrl || window.location.href;
     const tooltipText = el.dataset.tooltipText || "Copied to clipboard";
 
@@ -74,10 +81,10 @@
     tooltip.textContent = text;
     tooltip.style.opacity = '1';
 
-    // Hide after 2 seconds
+    // Hide after configured duration
     setTimeout(() => {
       tooltip.style.opacity = '0';
-    }, 2000);
+    }, TOOLTIP_DISPLAY_DURATION);
   }
 
   // Run once on initial page load (even if script injected late)
