@@ -53,7 +53,7 @@
           const top = (window.screen.height - height) / 2;
           window.open(
             this.href,
-            'share-dialog',
+            `share-${prop}`,
             `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
           );
         });
