@@ -15,10 +15,6 @@
   };
 
   function initCopyToClipboard(el) {
-    // Prevent duplicate initialization
-    if (el.dataset.blxCopyInitialized) return;
-    el.dataset.blxCopyInitialized = 'true';
-
     const urlToCopy = el.dataset.copyUrl || window.location.href;
     const tooltipText = el.dataset.tooltipText || "Copied to clipboard";
 
@@ -66,12 +62,12 @@
 
   function showTooltip(el, text) {
     // Look for existing tooltip element
-    let tooltip = el.querySelector('[blx-prop="tooltip"]');
+    let tooltip = el.querySelector('[blx-prop="copy-tooltip"]');
     
     if (!tooltip) {
       // Create tooltip if it doesn't exist
       tooltip = document.createElement('div');
-      tooltip.setAttribute('blx-prop', 'tooltip');
+      tooltip.setAttribute('blx-prop', 'copy-tooltip');
       tooltip.style.cssText = 'position: absolute; background: #333; color: #fff; padding: 6px 12px; border-radius: 4px; font-size: 14px; white-space: nowrap; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 1000; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-8px);';
       el.style.position = 'relative';
       el.appendChild(tooltip);
