@@ -14,6 +14,7 @@ The repository is structured so you can:
 - Inline SVG package
 - Modal package
 - Social Share package
+- Copy to Clipboard package
 
 ## 🚀 Usage
 
@@ -37,6 +38,9 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 
 <!-- Social Share package -->
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/social-share/index.min.js"></script>
+
+<!-- Copy to Clipboard package -->
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/copy-to-clipboard/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -51,6 +55,7 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Inline SVG package: ~2.5KB
 - Modal package: ~7.4KB
 - Social Share package: ~1.5KB
+- Copy to Clipboard package: ~2.9KB
 
 💡 Roadmap
 More packages will be introduced soon.
