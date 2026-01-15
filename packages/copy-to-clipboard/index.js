@@ -96,13 +96,22 @@
     }
     
     // Ensure positioning values are set for visibility
-    if (computedStyle.top === 'auto' && computedStyle.bottom === 'auto') {
+    const hasTopOrBottom = computedStyle.top !== 'auto' || computedStyle.bottom !== 'auto';
+    const hasLeftOrRight = computedStyle.left !== 'auto' || computedStyle.right !== 'auto';
+    
+    if (!hasTopOrBottom) {
       tooltip.style.setProperty('bottom', '100%', 'important');
       tooltip.style.setProperty('margin-bottom', '8px', 'important');
     }
-    if (computedStyle.left === 'auto' && computedStyle.right === 'auto') {
+    if (!hasLeftOrRight) {
       tooltip.style.setProperty('left', '50%', 'important');
-      tooltip.style.setProperty('transform', 'translateX(-50%)', 'important');
+      // Preserve any existing transform and add translateX
+      const existingTransform = computedStyle.transform;
+      if (existingTransform && existingTransform !== 'none') {
+        tooltip.style.setProperty('transform', existingTransform + ' translateX(-50%)', 'important');
+      } else {
+        tooltip.style.setProperty('transform', 'translateX(-50%)', 'important');
+      }
     }
 
     // Hide after configured duration
@@ -110,7 +119,9 @@
       tooltip.style.setProperty('opacity', '0', 'important');
       // Optionally hide after fade out
       setTimeout(() => {
-        if (tooltip.style.opacity === '0') {
+        // Check computed style to ensure opacity is actually 0
+        const currentOpacity = window.getComputedStyle(tooltip).opacity;
+        if (currentOpacity === '0') {
           tooltip.style.setProperty('display', 'none', 'important');
         }
       }, 300); // Match the transition duration
