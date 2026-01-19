@@ -1,6 +1,6 @@
 // packages/index.js
 // BLX Global Loader
-// Version: 1.0.5
+// Version: 1.0.6
 
 window.BLX = window.BLX || {};
 window.BLX.utils = window.BLX.utils || {};
@@ -11,6 +11,7 @@ import './inline-svg/index.js';
 import './modal/index.js';
 import './social-share/index.js';
 import './copy-to-clipboard/index.js';
+import './mapbox/index.js';
 
 function init() {
   // TOC
@@ -36,6 +37,11 @@ function init() {
   // Copy to Clipboard
   if (document.querySelector('[blx-el="copy-to-clipboard"]')) {
     window.BLX_COPY_TO_CLIPBOARD?.();
+  }
+
+  // Mapbox
+  if (document.querySelector('[blx-el="mapbox"]')) {
+    window.BLX_MAPBOX?.();
   }
 }
 

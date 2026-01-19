@@ -15,6 +15,7 @@ The repository is structured so you can:
 - Modal package
 - Social Share package
 - Copy to Clipboard package
+- Mapbox package
 
 ## 🚀 Usage
 
@@ -41,6 +42,11 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 
 <!-- Copy to Clipboard package -->
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/copy-to-clipboard/index.min.js"></script>
+
+<!-- Mapbox package (requires Mapbox GL JS) -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/mapbox/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -56,6 +62,7 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Modal package: ~7.4KB
 - Social Share package: ~1.5KB
 - Copy to Clipboard package: ~2.9KB
+- Mapbox package: ~9KB
 
 ## 📦 Packages
 
@@ -66,6 +73,7 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[Modal](packages/modal/)** - Accessible modal overlays with focus trapping and scroll locking
 - **[Social Share](packages/social-share/)** - Share links for LinkedIn, Twitter, Facebook, and Email
 - **[Copy to Clipboard](packages/copy-to-clipboard/)** - Copy URLs to clipboard with tooltip feedback
+- **[Mapbox](packages/mapbox/)** - Interactive maps and globes with custom markers and Webflow collection integration
 
 💡 Roadmap
 More packages will be introduced soon.
