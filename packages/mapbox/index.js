@@ -87,6 +87,15 @@
       }
     });
 
+    // Helper function to create click handler for marker elements
+    function createMarkerClickHandler(marker) {
+      return () => {
+        if (marker.getPopup()) {
+          marker.togglePopup();
+        }
+      };
+    }
+
     // Process Webflow collection items for the map
     function processCollectionItems(map, container, mapId) {
       // Find collection items associated with this map
@@ -141,7 +150,8 @@
           item: item,
           defaultContent: markerContent ? markerContent.cloneNode(true) : markerEl.cloneNode(true),
           activeContent: activeMarkerContent ? activeMarkerContent.cloneNode(true) : null,
-          isActive: false
+          isActive: false,
+          currentElement: markerEl
         };
 
         markers.push(marker);
@@ -168,12 +178,13 @@
         }
 
         // Click handler for marker
-        markerEl.addEventListener('click', () => {
+        const clickHandler = () => {
           if (marker.getPopup()) {
             marker.togglePopup();
           }
           setActiveMarker(marker, markers);
-        });
+        };
+        markerEl.addEventListener('click', clickHandler);
       });
 
       // Fit map to show all markers
@@ -208,17 +219,14 @@
           activeEl.style.cursor = 'pointer';
           
           // Re-add click handler
-          activeEl.addEventListener('click', () => {
-            if (marker.getPopup()) {
-              marker.togglePopup();
-            }
-          });
+          activeEl.addEventListener('click', createMarkerClickHandler(marker));
 
-          marker.getElement().replaceWith(activeEl);
-          marker._element = activeEl;
+          const currentEl = marker._blxData.currentElement;
+          currentEl.replaceWith(activeEl);
+          marker._blxData.currentElement = activeEl;
         } else {
           // Add active class to current marker
-          marker.getElement().classList.add('blx-mapbox-marker-active');
+          marker._blxData.currentElement.classList.add('blx-mapbox-marker-active');
         }
 
         // Dispatch custom event
@@ -239,14 +247,11 @@
         defaultEl.style.cursor = 'pointer';
 
         // Re-add click handler
-        defaultEl.addEventListener('click', () => {
-          if (marker.getPopup()) {
-            marker.togglePopup();
-          }
-        });
+        defaultEl.addEventListener('click', createMarkerClickHandler(marker));
 
-        marker.getElement().replaceWith(defaultEl);
-        marker._element = defaultEl;
+        const currentEl = marker._blxData.currentElement;
+        currentEl.replaceWith(defaultEl);
+        marker._blxData.currentElement = defaultEl;
 
         // Dispatch custom event
         const event = new CustomEvent('blx-mapbox-marker-inactive', {
