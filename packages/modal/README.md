@@ -1,6 +1,6 @@
 # BLX Modal
 
-Create accessible modal overlays with focus trapping, scroll locking, and responsive behavior.
+Create accessible modal overlays with focus trapping, scroll locking, responsive behavior, and CSS animation hooks.
 
 ## Features
 
@@ -11,7 +11,8 @@ Create accessible modal overlays with focus trapping, scroll locking, and respon
 - 🎯 Flexible pairing (group, ID, or proximity-based)
 - 🔙 Restores focus on close
 - 🪟 Multiple modals supported
-- ⚡ ~7.4KB minified
+- 🎬 CSS animation hooks for enter/leave transitions
+- ⚡ ~7.8KB minified
 
 ## Installation
 
@@ -154,6 +155,64 @@ Examples:
 <!-- Tablet overlay with scroll lock -->
 <button blx-el="modal-trigger" blx-prop="tablet, scroll-lock">Open</button>
 ```
+
+## Animations
+
+The modal adds CSS class hooks at each stage of the open/close lifecycle so you can define enter and leave animations entirely in CSS — no configuration required.
+
+### Animation Classes
+
+| Class | Applied to | When |
+|-------|------------|------|
+| `is-entering` | `[blx-el="modal-popup"]` | Added with `is-open` on open; removed when the animation/transition ends |
+| `is-leaving` | `[blx-el="modal-popup"]` | Added on close; `is-open` is removed once the animation/transition ends |
+
+The JS detects whether a CSS animation (`animation-duration`) or transition (`transition-duration`) is defined on the modal element. If neither is found it falls back to instant open/close, so existing setups without animations are unaffected.
+
+### CSS Animation Examples
+
+#### Fade backdrop + slide dialog (enter & leave)
+
+```css
+/* --- Backdrop --- */
+[blx-el="modal-popup"].is-entering {
+  animation: blx-backdrop-in 0.25s ease forwards;
+}
+[blx-el="modal-popup"].is-leaving {
+  animation: blx-backdrop-out 0.2s ease forwards;
+}
+
+@keyframes blx-backdrop-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes blx-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* --- Dialog (inner content box) --- */
+[blx-el="modal-popup"].is-entering .modal-content {
+  animation: blx-dialog-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+[blx-el="modal-popup"].is-leaving .modal-content {
+  animation: blx-dialog-out 0.2s ease forwards;
+}
+
+@keyframes blx-dialog-in  { from { opacity: 0; transform: translateY(-20px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes blx-dialog-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(10px) scale(0.97); } }
+```
+
+#### CSS Transition (fade)
+
+```css
+[blx-el="modal-popup"] {
+  transition: opacity 0.25s ease;
+  opacity: 0;
+}
+[blx-el="modal-popup"].is-open {
+  opacity: 1;
+}
+[blx-el="modal-popup"].is-leaving {
+  opacity: 0;
+}
+```
+
+> **Note**: When using CSS transitions for the **enter** direction, set the default (`is-open`) state as the destination and use the `is-leaving` class to reverse it. The backdrop will fade in automatically as `is-entering` is removed. For full bidirectional control, CSS animations (`@keyframes`) are recommended.
 
 ## Pairing Methods
 

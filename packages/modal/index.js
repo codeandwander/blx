@@ -1,5 +1,5 @@
 // BLX Modal
-// Version: 1.0.6
+// Version: 1.1.0
 
 (() => {
 
@@ -13,8 +13,10 @@
 
     const { breakpoints } = window.BLX.utils;
 
-    const OPEN_CLASS = 'is-open';
-    const LOCK_CLASS = 'blx-scroll-lock';
+    const OPEN_CLASS     = 'is-open';
+    const ENTERING_CLASS = 'is-entering';
+    const LEAVING_CLASS  = 'is-leaving';
+    const LOCK_CLASS     = 'blx-scroll-lock';
 
     /* -------------------------
        HELPERS
@@ -56,6 +58,40 @@
           'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
         )
       ).filter(el => !el.hasAttribute('disabled'));
+    }
+
+    // Calls callback immediately if no CSS animation/transition is detected,
+    // otherwise waits for the first animationend or transitionend event.
+    // A timeout fallback ensures the callback always fires even if events are missed.
+    function waitForAnimation(el, callback) {
+      const style = getComputedStyle(el);
+
+      // CSS allows multiple comma-separated durations; use the longest
+      function maxDuration(str) {
+        return Math.max(0, ...(str || '').split(',').map(s => parseFloat(s) || 0));
+      }
+
+      const animDuration  = maxDuration(style.animationDuration);
+      const transDuration = maxDuration(style.transitionDuration);
+
+      if (!animDuration && !transDuration) {
+        callback();
+        return;
+      }
+
+      let called = false;
+      function done() {
+        if (called) return;
+        called = true;
+        callback();
+      }
+
+      if (animDuration)  el.addEventListener('animationend',  done, { once: true });
+      if (transDuration) el.addEventListener('transitionend', done, { once: true });
+
+      // Fallback: fire after the longest declared duration in case events don't fire
+      const maxMs = Math.max(animDuration, transDuration) * 1000 + 50;
+      setTimeout(done, maxMs);
     }
 
     /* -------------------------
@@ -149,7 +185,15 @@
         modal.setAttribute('aria-hidden', 'false');
 
         modal.classList.add(OPEN_CLASS);
+        modal.classList.add(ENTERING_CLASS);
         trigger.setAttribute('aria-expanded', 'true');
+
+        // Wait for enter animation/transition, then remove entering class
+        requestAnimationFrame(() => {
+          waitForAnimation(modal, () => {
+            modal.classList.remove(ENTERING_CLASS);
+          });
+        });
 
         if (props.includes('scroll-lock')) {
           lockScroll();
@@ -191,35 +235,45 @@
     -------------------------- */
 
     function closeModal(modal) {
-      modal.classList.remove(OPEN_CLASS);
-      unlockScroll();
+      // Cancel any in-progress enter animation
+      modal.classList.remove(ENTERING_CLASS);
+      modal.classList.add(LEAVING_CLASS);
 
-      /* ---- Remove dialog semantics ---- */
-      modal.removeAttribute('role');
-      modal.removeAttribute('aria-modal');
-      modal.setAttribute('aria-hidden', 'true');
+      // Wait for leave animation/transition before tearing down
+      requestAnimationFrame(() => {
+        waitForAnimation(modal, () => {
+          modal.classList.remove(OPEN_CLASS);
+          modal.classList.remove(LEAVING_CLASS);
+          unlockScroll();
 
-      /* ---- Remove focus trap ---- */
-      if (activeTrapHandler) {
-        document.removeEventListener('keydown', activeTrapHandler);
-        activeTrapHandler = null;
-      }
+          /* ---- Remove dialog semantics ---- */
+          modal.removeAttribute('role');
+          modal.removeAttribute('aria-modal');
+          modal.setAttribute('aria-hidden', 'true');
 
-      /* ---- Restore focus ---- */
-      if (lastFocusedElement) {
-        lastFocusedElement.focus();
-        lastFocusedElement = null;
-      }
+          /* ---- Remove focus trap ---- */
+          if (activeTrapHandler) {
+            document.removeEventListener('keydown', activeTrapHandler);
+            activeTrapHandler = null;
+          }
 
-      /* ---- Restore original DOM position ---- */
-      const pos = originalPosition.get(modal);
-      if (pos?.parent) {
-        pos.parent.insertBefore(modal, pos.next || null);
-      }
+          /* ---- Restore focus ---- */
+          if (lastFocusedElement) {
+            lastFocusedElement.focus();
+            lastFocusedElement = null;
+          }
 
-      document
-        .querySelectorAll(`[aria-controls="${modal.id}"]`)
-        .forEach(t => t.setAttribute('aria-expanded', 'false'));
+          /* ---- Restore original DOM position ---- */
+          const pos = originalPosition.get(modal);
+          if (pos?.parent) {
+            pos.parent.insertBefore(modal, pos.next || null);
+          }
+
+          document
+            .querySelectorAll(`[aria-controls="${modal.id}"]`)
+            .forEach(t => t.setAttribute('aria-expanded', 'false'));
+        });
+      });
     }
 
     document.querySelectorAll('[blx-el="modal-close"]').forEach(closeEl => {
