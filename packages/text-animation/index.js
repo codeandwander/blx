@@ -17,9 +17,9 @@
 
     elements.forEach(el => {
       const effect   = el.getAttribute('blx-anim');
-      const duration = (parseFloat(el.getAttribute('blx-duration')) || 800) / 1000;
-      const delay    = (parseFloat(el.getAttribute('blx-delay')) || 0) / 1000;
-      const stagger  = (parseFloat(el.getAttribute('blx-stagger')) || 30) / 1000;
+      const duration = (el.hasAttribute('blx-duration') ? parseFloat(el.getAttribute('blx-duration')) : 800) / 1000;
+      const delay    = (el.hasAttribute('blx-delay')    ? parseFloat(el.getAttribute('blx-delay'))    : 0)   / 1000;
+      const stagger  = (el.hasAttribute('blx-stagger')  ? parseFloat(el.getAttribute('blx-stagger'))  : 0)   / 1000;
 
       // Parse blx-prop into flags (e.g. "inview") and key=value opts (e.g. "ease=power3.out")
       const rawProps = (el.getAttribute('blx-prop') || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -97,11 +97,13 @@
           scrollTrigger,
         });
       } else {
+        const staggerMode = opts['stagger-mode'] === 'amount' ? 'amount' : 'each';
+        const staggerVal  = stagger > 0 ? { [staggerMode]: stagger } : 0;
         const effectVars = {
-          fade:   { stagger, opacity: 0 },
-          blur:   { stagger, opacity: 0, filter: 'blur(8px)' },
-          slide:  { stagger, opacity: 0, y: yDistance },
-          rotate: { stagger, opacity: 0, rotationX: 90, transformOrigin: '50% 50% -20px' },
+          fade:   { stagger: staggerVal, opacity: 0 },
+          blur:   { stagger: staggerVal, opacity: 0, filter: 'blur(8px)' },
+          slide:  { stagger: staggerVal, opacity: 0, y: yDistance },
+          rotate: { stagger: staggerVal, opacity: 0, rotationX: 90, transformOrigin: '50% 50% -20px' },
         }[effect];
 
         if (!effectVars) {
