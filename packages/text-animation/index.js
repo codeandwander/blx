@@ -17,13 +17,25 @@
 
     elements.forEach(el => {
       const effect   = el.getAttribute('blx-anim');
-      const props    = (el.getAttribute('blx-prop') || '').split(',').map(s => s.trim()).filter(Boolean);
       const duration = (parseFloat(el.getAttribute('blx-duration')) || 800) / 1000;
-      const ease     = el.getAttribute('blx-easing') || 'power2.out';
       const delay    = (parseFloat(el.getAttribute('blx-delay')) || 0) / 1000;
       const stagger  = (parseFloat(el.getAttribute('blx-stagger')) || 30) / 1000;
-      const inview   = props.includes('inview');
-      const repeat   = props.includes('repeat');
+
+      // Parse blx-prop into flags (e.g. "inview") and key=value opts (e.g. "ease=power3.out")
+      const rawProps = (el.getAttribute('blx-prop') || '').split(',').map(s => s.trim()).filter(Boolean);
+      const flags = rawProps.filter(p => !p.includes('=')).map(p => p.toLowerCase());
+      const opts  = Object.fromEntries(
+        rawProps.filter(p => p.includes('=')).map(p => {
+          const eq = p.indexOf('=');
+          return [p.slice(0, eq).trim().toLowerCase(), p.slice(eq + 1).trim()];
+        })
+      );
+
+      const ease      = opts.ease || 'power2.out';
+      const yDistance = parseFloat(opts.y) || 40;
+      const inview    = flags.includes('inview');
+      const repeat    = flags.includes('repeat');
+      const clip      = flags.includes('clip');
 
       const scrollTrigger = inview && window.ScrollTrigger ? {
         trigger: el,
@@ -61,7 +73,7 @@
 
       // clip: wrap each char in an overflow:hidden span so slide reveals from below
       const wrappers = [];
-      if (effect === 'slide' && props.includes('clip')) {
+      if (effect === 'slide' && clip) {
         split.chars.forEach(char => {
           const wrap = document.createElement('span');
           wrap.style.display = 'inline-block';
@@ -73,20 +85,30 @@
         });
       }
 
-      const effectVars = {
-        fade:       { stagger, opacity: 0 },
-        blur:       { stagger, opacity: 0, filter: 'blur(8px)' },
-        slide:      { stagger, opacity: 0, y: '105%' },
-        typewriter: { stagger: { each: stagger, from: 'start' }, opacity: 0 },
-        rotate:     { stagger, opacity: 0, rotationX: 90, transformOrigin: '50% 50% -20px' },
-      }[effect];
+      if (effect === 'typewriter') {
+        gsap.set(split.chars, { opacity: 0 });
+        gsap.to(split.chars, {
+          opacity: 1,
+          duration: 0,
+          stagger: { each: stagger, from: 'start' },
+          delay,
+          scrollTrigger,
+        });
+      } else {
+        const effectVars = {
+          fade:   { stagger, opacity: 0 },
+          blur:   { stagger, opacity: 0, filter: 'blur(8px)' },
+          slide:  { stagger, opacity: 0, y: yDistance },
+          rotate: { stagger, opacity: 0, rotationX: 90, transformOrigin: '50% 50% -20px' },
+        }[effect];
 
-      if (!effectVars) {
-        console.warn(`[BLX_TEXT_ANIMATION] Unknown effect: "${effect}". Options: fade, blur, slide, typewriter, rotate, scramble.`);
-        return;
+        if (!effectVars) {
+          console.warn(`[BLX_TEXT_ANIMATION] Unknown effect: "${effect}". Options: fade, blur, slide, typewriter, rotate, scramble.`);
+          return;
+        }
+
+        gsap.from(split.chars, { duration, ease, delay, scrollTrigger, ...effectVars });
       }
-
-      gsap.from(split.chars, { duration, ease, delay, scrollTrigger, ...effectVars });
     });
   };
 
