@@ -50,7 +50,7 @@
           return;
         }
         const text = el.textContent.trim();
-        el.style.opacity = '';
+        el.style.opacity = '1';
         gsap.to(el, {
           duration,
           ease,
@@ -66,7 +66,7 @@
         return;
       }
 
-      el.style.opacity = '';
+      el.style.opacity = '1';
       const split = new SplitText(el, { type: 'chars' });
 
       if (effect === 'rotate') {
