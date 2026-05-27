@@ -78,8 +78,9 @@
       // ── Element animation (no split — no resize handling needed) ─────────────
       if (!perChar && !perWord && !perLine && !scroll) {
         // `children` flag: animate direct children of el as a group (enables stagger across siblings)
+        // Always reveal the parent — [blx-anim] { opacity: 0 } hides it by default to prevent FOUC
+        el.style.opacity = '1';
         const targets = children ? Array.from(el.children) : el;
-        if (!children) el.style.opacity = '1';
         const fromVars = {};
         const toVars   = {};
         if (effects.includes('fade'))  { fromVars.opacity = 0;          toVars.opacity = 1; }
