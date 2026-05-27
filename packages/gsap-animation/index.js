@@ -1,11 +1,9 @@
-// BLX Text Animation
-// Version: 2.3.0
+// BLX GSAP Animation
+// Version: 2.4.0
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.2.0:
-// - Added `children` flag: animates direct children of the element as a group (enables stagger)
-// - Fixed element animation toVars: only includes properties for selected effects
-// - Added blur support for element animation mode
+// Changes from v2.3.0:
+// - Renamed package from text-animation to gsap-animation
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
