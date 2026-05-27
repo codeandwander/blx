@@ -1,11 +1,11 @@
 // BLX Text Animation
-// Version: 2.2.0
+// Version: 2.3.0
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.1.0:
-// - ResizeObserver on each element: re-splits on browser resize so line breaks stay correct
-//   - Scroll / inview+repeat: re-runs the full animation after resize
-//   - Inview (no repeat) / onload: reverts split only — text reflows at full opacity, no re-animation
+// Changes from v2.2.0:
+// - Added `children` flag: animates direct children of the element as a group (enables stagger)
+// - Fixed element animation toVars: only includes properties for selected effects
+// - Added blur support for element animation mode
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -43,6 +43,7 @@
       const repeat    = flags.includes('repeat');
       const scroll    = flags.includes('scroll');
       const clip      = flags.includes('clip');
+      const children  = flags.includes('children');
       const perChar   = flags.includes('per-char');
       const perWord   = flags.includes('per-word');
       const perLine   = flags.includes('per-line');
@@ -76,7 +77,9 @@
 
       // ── Element animation (no split — no resize handling needed) ─────────────
       if (!perChar && !perWord && !perLine && !scroll) {
-        el.style.opacity = '1';
+        // `children` flag: animate direct children of el as a group (enables stagger across siblings)
+        const targets = children ? Array.from(el.children) : el;
+        if (!children) el.style.opacity = '1';
         const fromVars = {};
         const toVars   = {};
         if (effects.includes('fade'))  { fromVars.opacity = 0;          toVars.opacity = 1; }
@@ -97,7 +100,7 @@
           ...(repeat ? { toggleActions: 'play none none reset' } : { once: true }),
         } : undefined;
         const staggerVal = stagger > 0 ? { each: stagger } : 0;
-        gsap.fromTo(el, fromVars, { ...toVars, duration, ease, delay, stagger: staggerVal, scrollTrigger });
+        gsap.fromTo(targets, fromVars, { ...toVars, duration, ease, delay, stagger: staggerVal, scrollTrigger });
         return;
       }
 
