@@ -1,13 +1,11 @@
 // BLX Text Animation
-// Version: 2.1.0
+// Version: 2.2.0
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.0.0:
-// - blx-prop now supports space-separated values in addition to comma-separated
-// - Added per-line split mode
-// - Added scroll trigger (scrubbed) with sharpness= parameter
-// - Fixed gsap.from → gsap.fromTo (only animates selected properties)
-// - Blur in scroll mode uses index-offset individual ScrollTriggers (hybrid approach)
+// Changes from v2.1.0:
+// - ResizeObserver on each element: re-splits on browser resize so line breaks stay correct
+//   - Scroll / inview+repeat: re-runs the full animation after resize
+//   - Inview (no repeat) / onload: reverts split only — text reflows at full opacity, no re-animation
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -60,7 +58,7 @@
         }
       }
 
-      // ── Scramble ──────────────────────────────────────────────────────────────
+      // ── Scramble (no SplitText — no resize handling needed) ───────────────────
       if (effects.includes('scramble')) {
         if (!window.ScrambleTextPlugin) {
           console.warn('[BLX_TEXT_ANIMATION] ScrambleTextPlugin not found for "scramble" effect.');
@@ -76,90 +74,14 @@
         return;
       }
 
-      // ── Scroll scrub mode ─────────────────────────────────────────────────────
-      if (scroll && window.ScrollTrigger) {
-        if (!window.SplitText) {
-          console.warn('[BLX_TEXT_ANIMATION] SplitText not found for scroll animation.');
-          return;
-        }
-        const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
-        const split     = new SplitText(el, { type: splitType });
-        const targets   = split[splitType];
-
-        const startPct = 50 + sharpness;
-        const endPct   = 50;
-
-        if (splitType === 'lines') {
-          // Per-line: each line gets its own trigger based on its DOM position
-          const fromVars = { opacity: 0.15 };
-          const toVars   = { opacity: 1, ease: 'none' };
-          if (effects.includes('blur'))  { fromVars.filter = 'blur(6px)';  toVars.filter = 'blur(0px)'; }
-          if (effects.includes('slide')) {
-            const sv = slideVars(distance);
-            Object.assign(fromVars, sv);
-            if ('y' in sv) toVars.y = 0;
-            if ('x' in sv) toVars.x = 0;
-          }
-          gsap.set(targets, { ...fromVars });
-          targets.forEach(target => {
-            gsap.fromTo(target, { ...fromVars }, {
-              ...toVars,
-              scrollTrigger: { trigger: target, start: `top ${startPct}%`, end: `top ${endPct}%`, scrub: true },
-            });
-          });
-        } else {
-          // Per-word / per-char:
-          // Opacity + slide via timeline stagger (reliable in scrubbed timelines).
-          // Blur via individual index-offset triggers on the parent — filter doesn't
-          // interpolate correctly in staggered scrubbed timelines.
-          const itemDur = Math.max(0.05, sharpness / 100);
-          const opFrom  = { opacity: 0.15 };
-          const opTo    = { opacity: 1, ease: 'none' };
-          if (effects.includes('slide')) {
-            const sv = slideVars(distance);
-            Object.assign(opFrom, sv);
-            if ('y' in sv) opTo.y = 0;
-            if ('x' in sv) opTo.x = 0;
-          }
-
-          const initVars = { ...opFrom };
-          if (effects.includes('blur')) initVars.filter = 'blur(6px)';
-          gsap.set(targets, initVars);
-
-          gsap.timeline({
-            scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 20%', scrub: true },
-          }).fromTo(targets, opFrom, { ...opTo, duration: itemDur, stagger: { each: 0.3 } });
-
-          if (effects.includes('blur')) {
-            const staggerRange = Math.min(60, sharpness * 5);
-            const perItem = targets.length > 1 ? staggerRange / (targets.length - 1) : 0;
-            targets.forEach((target, i) => {
-              const bStart = 85 - i * perItem;
-              const bEnd   = bStart - sharpness;
-              gsap.fromTo(target, { filter: 'blur(6px)' }, {
-                filter: 'blur(0px)', ease: 'none',
-                scrollTrigger: { trigger: el, start: `top ${bStart}%`, end: `top ${bEnd}%`, scrub: true },
-              });
-            });
-          }
-        }
-        return;
-      }
-
-      // ── Inview scroll trigger (non-scrub) ─────────────────────────────────────
-      const scrollTrigger = inview && window.ScrollTrigger ? {
-        trigger: el, start: 'top 85%',
-        ...(repeat ? { toggleActions: 'play none none reset' } : { once: true }),
-      } : undefined;
-
-      // ── Element animation (no split) ──────────────────────────────────────────
-      if (!perChar && !perWord && !perLine) {
+      // ── Element animation (no split — no resize handling needed) ─────────────
+      if (!perChar && !perWord && !perLine && !scroll) {
         el.style.opacity = '1';
         const fromVars = {};
         const toVars   = {};
-        if (effects.includes('fade'))  { fromVars.opacity = 0;           toVars.opacity = 1; }
-        if (effects.includes('blur'))  { fromVars.filter = 'blur(8px)';  toVars.filter = 'blur(0px)'; }
-        if (effects.includes('scale')) { fromVars.scale = 0.85;          toVars.scale = 1; }
+        if (effects.includes('fade'))  { fromVars.opacity = 0;          toVars.opacity = 1; }
+        if (effects.includes('blur'))  { fromVars.filter = 'blur(8px)'; toVars.filter = 'blur(0px)'; }
+        if (effects.includes('scale')) { fromVars.scale = 0.85;         toVars.scale = 1; }
         if (effects.includes('slide')) {
           const sv = slideVars(distance);
           Object.assign(fromVars, sv);
@@ -170,64 +92,191 @@
           console.warn(`[BLX_TEXT_ANIMATION] No recognised effects for element animation: "${effects.join(' ')}". Add per-char, per-word, or per-line for text animation.`);
           return;
         }
+        const scrollTrigger = inview && window.ScrollTrigger ? {
+          trigger: el, start: 'top 85%',
+          ...(repeat ? { toggleActions: 'play none none reset' } : { once: true }),
+        } : undefined;
         const staggerVal = stagger > 0 ? { each: stagger } : 0;
         gsap.fromTo(el, fromVars, { ...toVars, duration, ease, delay, stagger: staggerVal, scrollTrigger });
         return;
       }
 
-      // ── Text animation (per-char / per-word / per-line) ───────────────────────
+      // ── Split-based animations — all require resize handling ──────────────────
       if (!window.SplitText) {
         console.warn('[BLX_TEXT_ANIMATION] SplitText not found for text animation.');
         return;
       }
 
-      el.style.opacity = '1';
-      const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
-      const split     = new SplitText(el, { type: splitType });
-      const targets   = split[splitType];
+      // Per-element state tracked so cleanup() can fully reset before re-running
+      let currentSplit    = null;
+      let currentTargets  = [];
+      let currentWrappers = [];
+      let currentSTs      = []; // ScrollTrigger instances
 
-      if (effects.includes('rotate')) el.style.perspective = '400px';
-
-      // Clip wrap for slide
-      if (effects.includes('slide') && clip) {
-        targets.forEach(t => {
-          const wrap = document.createElement('span');
-          wrap.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:bottom';
-          t.parentNode.insertBefore(wrap, t);
-          wrap.appendChild(t);
+      function cleanup() {
+        if (currentTargets.length) gsap.killTweensOf(currentTargets);
+        currentSTs.forEach(st => st && st.kill());
+        currentSTs = [];
+        currentWrappers.forEach(wrap => {
+          if (wrap.firstChild && wrap.parentNode) {
+            wrap.parentNode.insertBefore(wrap.firstChild, wrap);
+            wrap.parentNode.removeChild(wrap);
+          }
         });
+        currentWrappers = [];
+        if (currentSplit) { currentSplit.revert(); currentSplit = null; }
+        currentTargets = [];
       }
 
-      // ── Typewriter ─────────────────────────────────────────────────────────────
-      if (effects.includes('typewriter')) {
-        gsap.set(targets, { opacity: 0 });
-        gsap.to(targets, {
-          opacity: 1, duration: 0,
-          stagger: { each: stagger, from: 'start' },
-          delay, scrollTrigger,
-        });
-        return;
+      function run() {
+        cleanup();
+
+        // ── Scroll scrub mode ───────────────────────────────────────────────────
+        if (scroll && window.ScrollTrigger) {
+          const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
+          currentSplit    = new SplitText(el, { type: splitType });
+          currentTargets  = currentSplit[splitType];
+
+          const startPct = 50 + sharpness;
+          const endPct   = 50;
+
+          if (splitType === 'lines') {
+            const fromVars = { opacity: 0.15 };
+            const toVars   = { opacity: 1, ease: 'none' };
+            if (effects.includes('blur'))  { fromVars.filter = 'blur(6px)';  toVars.filter = 'blur(0px)'; }
+            if (effects.includes('slide')) {
+              const sv = slideVars(distance);
+              Object.assign(fromVars, sv);
+              if ('y' in sv) toVars.y = 0;
+              if ('x' in sv) toVars.x = 0;
+            }
+            gsap.set(currentTargets, { ...fromVars });
+            currentTargets.forEach(target => {
+              const tw = gsap.fromTo(target, { ...fromVars }, {
+                ...toVars,
+                scrollTrigger: { trigger: target, start: `top ${startPct}%`, end: `top ${endPct}%`, scrub: true },
+              });
+              if (tw.scrollTrigger) currentSTs.push(tw.scrollTrigger);
+            });
+          } else {
+            // Per-word / per-char: timeline for opacity/slide, individual triggers for blur
+            const itemDur = Math.max(0.05, sharpness / 100);
+            const opFrom  = { opacity: 0.15 };
+            const opTo    = { opacity: 1, ease: 'none' };
+            if (effects.includes('slide')) {
+              const sv = slideVars(distance);
+              Object.assign(opFrom, sv);
+              if ('y' in sv) opTo.y = 0;
+              if ('x' in sv) opTo.x = 0;
+            }
+            const initVars = { ...opFrom };
+            if (effects.includes('blur')) initVars.filter = 'blur(6px)';
+            gsap.set(currentTargets, initVars);
+
+            const tl = gsap.timeline({
+              scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 20%', scrub: true },
+            }).fromTo(currentTargets, opFrom, { ...opTo, duration: itemDur, stagger: { each: 0.3 } });
+            if (tl.scrollTrigger) currentSTs.push(tl.scrollTrigger);
+
+            if (effects.includes('blur')) {
+              const staggerRange = Math.min(60, sharpness * 5);
+              const perItem = currentTargets.length > 1 ? staggerRange / (currentTargets.length - 1) : 0;
+              currentTargets.forEach((target, i) => {
+                const bStart = 85 - i * perItem;
+                const bEnd   = bStart - sharpness;
+                const tw = gsap.fromTo(target, { filter: 'blur(6px)' }, {
+                  filter: 'blur(0px)', ease: 'none',
+                  scrollTrigger: { trigger: el, start: `top ${bStart}%`, end: `top ${bEnd}%`, scrub: true },
+                });
+                if (tw.scrollTrigger) currentSTs.push(tw.scrollTrigger);
+              });
+            }
+          }
+          return;
+        }
+
+        // ── Inview scroll trigger (non-scrub) ───────────────────────────────────
+        const scrollTrigger = inview && window.ScrollTrigger ? {
+          trigger: el, start: 'top 85%',
+          ...(repeat ? { toggleActions: 'play none none reset' } : { once: true }),
+        } : undefined;
+
+        el.style.opacity = '1';
+        const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
+        currentSplit    = new SplitText(el, { type: splitType });
+        currentTargets  = currentSplit[splitType];
+
+        if (effects.includes('rotate')) el.style.perspective = '400px';
+
+        // Clip wrap for slide
+        if (effects.includes('slide') && clip) {
+          currentTargets.forEach(t => {
+            const wrap = document.createElement('span');
+            wrap.style.cssText = 'display:inline-block;overflow:hidden;vertical-align:bottom';
+            t.parentNode.insertBefore(wrap, t);
+            wrap.appendChild(t);
+            currentWrappers.push(wrap);
+          });
+        }
+
+        // ── Typewriter ──────────────────────────────────────────────────────────
+        if (effects.includes('typewriter')) {
+          gsap.set(currentTargets, { opacity: 0 });
+          gsap.to(currentTargets, {
+            opacity: 1, duration: 0,
+            stagger: { each: stagger, from: 'start' },
+            delay, scrollTrigger,
+          });
+          return;
+        }
+
+        // ── Composable effects ──────────────────────────────────────────────────
+        const fromVars = {};
+        const toVars   = {};
+        if (effects.includes('fade'))   { fromVars.opacity = 0;                 toVars.opacity = 1; }
+        if (effects.includes('blur'))   { fromVars.filter = 'blur(8px)';        toVars.filter = 'blur(0px)'; }
+        if (effects.includes('rotate')) {
+          fromVars.rotationX = 90; fromVars.transformOrigin = '50% 50% -20px';
+          toVars.rotationX = 0;
+        }
+        if (effects.includes('slide')) {
+          const sv = slideVars(distance);
+          Object.assign(fromVars, sv);
+          if ('y' in sv) toVars.y = 0;
+          if ('x' in sv) toVars.x = 0;
+        }
+        if (!Object.keys(fromVars).length) return;
+
+        const staggerVal = stagger > 0 ? { each: stagger } : 0;
+        gsap.fromTo(currentTargets, fromVars, { ...toVars, duration, ease, delay, stagger: staggerVal, scrollTrigger });
       }
 
-      // ── Composable effects ──────────────────────────────────────────────────────
-      const fromVars = {};
-      const toVars   = {};
-      if (effects.includes('fade'))   { fromVars.opacity = 0;                 toVars.opacity = 1; }
-      if (effects.includes('blur'))   { fromVars.filter = 'blur(8px)';        toVars.filter = 'blur(0px)'; }
-      if (effects.includes('rotate')) {
-        fromVars.rotationX = 90; fromVars.transformOrigin = '50% 50% -20px';
-        toVars.rotationX = 0;
-      }
-      if (effects.includes('slide')) {
-        const sv = slideVars(distance);
-        Object.assign(fromVars, sv);
-        if ('y' in sv) toVars.y = 0;
-        if ('x' in sv) toVars.x = 0;
-      }
-      if (!Object.keys(fromVars).length) return;
+      // Run the animation on page load
+      run();
 
-      const staggerVal = stagger > 0 ? { each: stagger } : 0;
-      gsap.fromTo(targets, fromVars, { ...toVars, duration, ease, delay, stagger: staggerVal, scrollTrigger });
+      // ── Resize handling ───────────────────────────────────────────────────────
+      // SplitText captures line breaks at split time; text reflows on resize but
+      // wrappers don't update. We observe the element width and re-split on change.
+      const shouldReanimate = scroll || (inview && repeat);
+      let prevWidth = null;
+      let resizeTimer;
+
+      const observer = new ResizeObserver(entries => {
+        const w = Math.round(entries[0]?.contentRect.width ?? 0);
+        if (prevWidth === null) { prevWidth = w; return; } // skip initial measurement
+        if (w === prevWidth) return;
+        prevWidth = w;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (shouldReanimate) {
+            run();
+            if (scroll && window.ScrollTrigger) ScrollTrigger.refresh();
+          } else {
+            cleanup(); // revert split — text reflows at full opacity, no re-animation
+          }
+        }, 200);
+      });
+      observer.observe(el);
     });
   };
 
