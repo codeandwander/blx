@@ -1,9 +1,9 @@
 // BLX GSAP Animation
-// Version: 2.4.0
+// Version: 2.4.1
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.3.0:
-// - Renamed package from text-animation to gsap-animation
+// Changes from v2.4.0:
+// - Fixed scroll mode: element opacity was not set to 1, leaving it hidden by [blx-anim] CSS
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -135,6 +135,7 @@
 
         // ── Scroll scrub mode ───────────────────────────────────────────────────
         if (scroll && window.ScrollTrigger) {
+          el.style.opacity = '1';
           const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
           currentSplit    = new SplitText(el, { type: splitType });
           currentTargets  = currentSplit[splitType];
