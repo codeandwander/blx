@@ -1,9 +1,9 @@
 // BLX GSAP Animation
-// Version: 2.4.1
+// Version: 2.4.2
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.4.0:
-// - Fixed scroll mode: element opacity was not set to 1, leaving it hidden by [blx-anim] CSS
+// Changes from v2.4.1:
+// - Per-char mode now splits by 'chars,words' so words never break mid-word across lines
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -137,7 +137,8 @@
         if (scroll && window.ScrollTrigger) {
           el.style.opacity = '1';
           const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
-          currentSplit    = new SplitText(el, { type: splitType });
+          const splitArg  = perChar ? 'chars,words' : splitType;
+          currentSplit    = new SplitText(el, { type: splitArg });
           currentTargets  = currentSplit[splitType];
 
           const startPct = 50 + sharpness;
@@ -206,7 +207,8 @@
 
         el.style.opacity = '1';
         const splitType = perChar ? 'chars' : perWord ? 'words' : 'lines';
-        currentSplit    = new SplitText(el, { type: splitType });
+        const splitArg  = perChar ? 'chars,words' : splitType;
+        currentSplit    = new SplitText(el, { type: splitArg });
         currentTargets  = currentSplit[splitType];
 
         if (effects.includes('rotate')) el.style.perspective = '400px';
