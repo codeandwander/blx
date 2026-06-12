@@ -1,10 +1,10 @@
 // BLX GSAP Animation
-// Version: 2.4.3
+// Version: 2.4.4
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.4.2:
-// - Scroll mode: blx-prop now supports end=N (viewport % where animation completes, default 50)
-// - Scroll mode: blx-prop now supports sharpness=N (was hardcoded to 8)
+// Changes from v2.4.3:
+// - Call ScrollTrigger.refresh() on window.load so font/image load layout shifts
+//   don't leave scroll-mode triggers miscalculated (fixes intermittent mobile failures)
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -292,4 +292,8 @@
   } else {
     window.BLX_TEXT_ANIMATION();
   }
+
+  window.addEventListener('load', () => {
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
+  });
 })();
