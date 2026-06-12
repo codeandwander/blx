@@ -296,18 +296,16 @@
 
   // Late-loading images (especially lazy/CMS images) shift layout after ScrollTrigger
   // has measured trigger positions, leaving scroll animations firing at the wrong point —
-  // typically stuck fully revealed. Debounce-refresh on window.load and whenever any
-  // image finishes loading.
+  // typically stuck fully revealed. ScrollTrigger already refreshes on window.load, but
+  // lazy images settle after that; debounce-refresh whenever any image finishes loading.
   if (window.ScrollTrigger) {
     let refreshTimer;
-    const refresh = () => {
-      clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 200);
-    };
-    window.addEventListener('load', refresh);
     // 'load' doesn't bubble, so listen in the capture phase to catch every <img>
     document.addEventListener('load', e => {
-      if (e.target && e.target.tagName === 'IMG') refresh();
+      if (e.target && e.target.tagName === 'IMG') {
+        clearTimeout(refreshTimer);
+        refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 200);
+      }
     }, true);
   }
 })();
