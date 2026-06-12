@@ -1,10 +1,11 @@
 // BLX GSAP Animation
-// Version: 2.4.4
+// Version: 2.4.5
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.4.3:
-// - Call ScrollTrigger.refresh() on window.load so font/image load layout shifts
-//   don't leave scroll-mode triggers miscalculated (fixes intermittent mobile failures)
+// Changes from v2.4.4:
+// - Debounce-refresh ScrollTrigger whenever an image finishes loading, not just on
+//   window.load. Lazy/CMS images above a scroll element settle after load, shifting it
+//   down and leaving the cached trigger positions stale (animation stuck fully revealed).
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -293,7 +294,20 @@
     window.BLX_TEXT_ANIMATION();
   }
 
-  window.addEventListener('load', () => {
-    if (window.ScrollTrigger) ScrollTrigger.refresh();
-  });
+  // Late-loading images (especially lazy/CMS images) shift layout after ScrollTrigger
+  // has measured trigger positions, leaving scroll animations firing at the wrong point —
+  // typically stuck fully revealed. Debounce-refresh on window.load and whenever any
+  // image finishes loading.
+  if (window.ScrollTrigger) {
+    let refreshTimer;
+    const refresh = () => {
+      clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 200);
+    };
+    window.addEventListener('load', refresh);
+    // 'load' doesn't bubble, so listen in the capture phase to catch every <img>
+    document.addEventListener('load', e => {
+      if (e.target && e.target.tagName === 'IMG') refresh();
+    }, true);
+  }
 })();
