@@ -1,9 +1,10 @@
 // BLX GSAP Animation
-// Version: 2.4.2
+// Version: 2.4.3
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.4.1:
-// - Per-char mode now splits by 'chars,words' so words never break mid-word across lines
+// Changes from v2.4.2:
+// - Scroll mode: blx-prop now supports end=N (viewport % where animation completes, default 50)
+// - Scroll mode: blx-prop now supports sharpness=N (was hardcoded to 8)
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -37,6 +38,7 @@
       const ease      = opts.ease      || 'power2.out';
       const distance  = parseFloat(opts.distance)  || 40;
       const sharpness = parseFloat(opts.sharpness) || 8;
+      const scrollEnd = parseFloat(opts.end)        || 50;
       const inview    = flags.includes('inview');
       const repeat    = flags.includes('repeat');
       const scroll    = flags.includes('scroll');
@@ -141,8 +143,8 @@
           currentSplit    = new SplitText(el, { type: splitArg });
           currentTargets  = currentSplit[splitType];
 
-          const startPct = 50 + sharpness;
-          const endPct   = 50;
+          const startPct = scrollEnd + sharpness;
+          const endPct   = scrollEnd;
 
           if (splitType === 'lines') {
             const fromVars = { opacity: 0.15 };
@@ -178,7 +180,7 @@
             gsap.set(currentTargets, initVars);
 
             const tl = gsap.timeline({
-              scrollTrigger: { trigger: el, start: 'top 85%', end: 'bottom 20%', scrub: true },
+              scrollTrigger: { trigger: el, start: 'top 85%', end: `bottom ${scrollEnd}%`, scrub: true },
             }).fromTo(currentTargets, opFrom, { ...opTo, duration: itemDur, stagger: { each: 0.3 } });
             if (tl.scrollTrigger) currentSTs.push(tl.scrollTrigger);
 
