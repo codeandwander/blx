@@ -1,11 +1,13 @@
 // BLX GSAP Animation
-// Version: 2.4.5
+// Version: 2.4.6
 // Requires: GSAP, SplitText (for text), ScrollTrigger, ScrambleTextPlugin (optional)
 //
-// Changes from v2.4.4:
-// - Debounce-refresh ScrollTrigger whenever an image finishes loading, not just on
-//   window.load. Lazy/CMS images above a scroll element settle after load, shifting it
-//   down and leaving the cached trigger positions stale (animation stuck fully revealed).
+// Changes from v2.4.5:
+// - Defer the image-load ScrollTrigger.refresh() until scrolling/touch is idle.
+//   refresh() forces a synchronous layout pass; running it mid-scroll on iOS/iPadOS
+//   kills momentum scrolling (page stops, needs another swipe). Now it waits for a
+//   quiet gap after the last scroll/touch/image-load, so positions still correct
+//   promptly without interrupting an active scroll.
 
 (() => {
   window.BLX_TEXT_ANIMATION = function () {
@@ -297,15 +299,25 @@
   // Late-loading images (especially lazy/CMS images) shift layout after ScrollTrigger
   // has measured trigger positions, leaving scroll animations firing at the wrong point —
   // typically stuck fully revealed. ScrollTrigger already refreshes on window.load, but
-  // lazy images settle after that; debounce-refresh whenever any image finishes loading.
+  // lazy images settle after that, so we refresh again when an image finishes loading.
+  //
+  // refresh() forces a synchronous layout pass; running it mid-scroll on iOS/iPadOS kills
+  // momentum scrolling. So we only refresh once activity is idle: any image load arms a
+  // pending refresh, and the timer is pushed back on every scroll/touch so it can only
+  // fire in a quiet gap — never during an active scroll or fling.
   if (window.ScrollTrigger) {
-    let refreshTimer;
+    let idleTimer;
+    let pending = false;
+    const schedule = () => {
+      if (!pending) return;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => { pending = false; ScrollTrigger.refresh(); }, 300);
+    };
     // 'load' doesn't bubble, so listen in the capture phase to catch every <img>
     document.addEventListener('load', e => {
-      if (e.target && e.target.tagName === 'IMG') {
-        clearTimeout(refreshTimer);
-        refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 200);
-      }
+      if (e.target && e.target.tagName === 'IMG') { pending = true; schedule(); }
     }, true);
+    ['scroll', 'touchstart', 'touchmove'].forEach(ev =>
+      window.addEventListener(ev, schedule, { passive: true }));
   }
 })();
