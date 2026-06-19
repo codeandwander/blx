@@ -1,6 +1,6 @@
 // packages/index.js
 // BLX Global Loader
-// Version: 1.0.6
+// Version: 1.0.7
 
 window.BLX = window.BLX || {};
 window.BLX.utils = window.BLX.utils || {};
@@ -12,6 +12,7 @@ import './modal/index.js';
 import './social-share/index.js';
 import './copy-to-clipboard/index.js';
 import './mapbox/index.js';
+import './accordion/index.js';
 
 function init() {
   // TOC
@@ -42,6 +43,11 @@ function init() {
   // Mapbox
   if (document.querySelector('[blx-el="mapbox"]')) {
     window.BLX_MAPBOX?.();
+  }
+
+  // Accordion
+  if (document.querySelector('[blx-el="accordion"]')) {
+    window.BLX_ACCORDION?.();
   }
 }
 
