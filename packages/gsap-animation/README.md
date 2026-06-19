@@ -1,4 +1,4 @@
-# BLX Text Animation
+# BLX GSAP Animation
 
 Attribute-driven text animations for Webflow, powered by GSAP. Configure in the playground, apply attributes in the Webflow designer — no code required.
 
@@ -23,7 +23,7 @@ ScrambleTextPlugin is only required if using the `scramble` effect:
 Load via jsDelivr after GSAP:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/text-animation/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/gsap-animation/index.min.js"></script>
 ```
 
 ## Usage

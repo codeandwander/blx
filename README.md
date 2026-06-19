@@ -16,6 +16,8 @@ The repository is structured so you can:
 - Social Share package
 - Copy to Clipboard package
 - Mapbox package
+- GSAP Animation package
+- Accordion package
 
 ## 🚀 Usage
 
@@ -47,6 +49,15 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/mapbox/index.min.js"></script>
+
+<!-- GSAP Animation package (requires GSAP, SplitText, and ScrollTrigger) -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/gsap-animation/index.min.js"></script>
+
+<!-- Accordion package -->
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/accordion/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -63,6 +74,8 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Social Share package: ~1.5KB
 - Copy to Clipboard package: ~2.9KB
 - Mapbox package: ~9KB
+- GSAP Animation package: ~6KB (excludes GSAP)
+- Accordion package: ~1.5KB
 
 ## 📦 Packages
 
@@ -74,6 +87,8 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[Social Share](packages/social-share/)** - Share links for LinkedIn, Twitter, Facebook, and Email
 - **[Copy to Clipboard](packages/copy-to-clipboard/)** - Copy URLs to clipboard with tooltip feedback
 - **[Mapbox](packages/mapbox/)** - Interactive maps and globes with custom markers and Webflow collection integration
+- **[GSAP Animation](packages/gsap-animation/)** - Attribute-driven text animations powered by GSAP
+- **[Accordion](packages/accordion/)** - Height-animated accordions with single-open groups and start-open support
 
 💡 Roadmap
 More packages will be introduced soon.
