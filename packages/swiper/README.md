@@ -133,6 +133,20 @@ Navigation is enabled automatically when **both** arrow elements exist inside th
 2. A Swiper config is built, with pagination, navigation and thumbs only added when their elements are present — a missing element means that feature is skipped rather than throwing.
 3. Swiper's A11y module is left on; only `slideRole` is overridden so CMS list semantics survive.
 
+## Re-initialising (dynamic content)
+
+`window.BLX_SWIPER()` is safe to call again after the page has loaded — for example once a CMS load (Finsweet) or page transition injects new content. On a re-run:
+
+- **New blocks** that aren't yet initialised are set up fresh.
+- **Existing blocks** are not re-initialised — they call `swiper.update()` instead, so slides injected into an already-running carousel are picked up without building a duplicate instance.
+
+```js
+// After injecting new slides or swiper blocks
+window.BLX_SWIPER();
+```
+
+Note: `update()` recalculates slides, pagination and navigation. If you change a running carousel's *options* (not just its slides) you'll need to destroy and re-create it manually.
+
 ## License
 
 Part of the BLX library. See main repository for license information.

@@ -20,6 +20,14 @@
     const root = el.querySelector('.swiper');
     if (!root) return;
 
+    // Already initialised — refresh to pick up injected slides rather than
+    // building a second instance over the same markup. Swiper attaches its
+    // instance to the container as `root.swiper`.
+    if (root.swiper) {
+      root.swiper.update();
+      return;
+    }
+
     const config = {
       loop: bool(el, 'loop'),
       rewind: bool(el, 'rewind'),
