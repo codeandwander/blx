@@ -45,6 +45,11 @@ Mark the block with `blx-el="swiper"` and include a `.swiper` container with the
       <div class="swiper-slide">Slide two</div>
     </div>
   </div>
+
+  <!-- Optional — pagination and arrows are detected by presence -->
+  <div blx-el="swiper-pagination"></div>
+  <div blx-el="swiper-prev">‹</div>
+  <div blx-el="swiper-next">›</div>
 </div>
 ```
 
@@ -58,7 +63,7 @@ When the slides come from a Webflow Collection List, Webflow renders the list as
 
 ## Attributes
 
-All configuration lives on the `blx-el="swiper"` element.
+Tuning attributes (`blx-swiper-*`) live on the `blx-el="swiper"` element. Pagination and navigation are enabled by placing marker elements inside the block (see those sections).
 
 | Attribute | Default | Description |
 |-----------|---------|-------------|
@@ -66,7 +71,7 @@ All configuration lives on the `blx-el="swiper"` element.
 | `blx-swiper-loop` | `false` | Infinite loop (clones slides) |
 | `blx-swiper-rewind` | `false` | Rewind to the first slide instead of looping (ignored if `loop` is on) |
 | `blx-swiper-direction` | `horizontal` | `horizontal` or `vertical` |
-| `blx-swiper-speed` | `300` | Transition speed (ms) |
+| `blx-swiper-speed` | `300` | Transition duration in ms (animation length, unrelated to autoplay timing) |
 | `blx-swiper-initial-slide` | `0` | Starting slide index |
 | `blx-swiper-effect` | `slide` | `slide`, `fade`, `cube`, `coverflow`, `flip`, `creative` |
 | `blx-swiper-grab-cursor` | `false` | Show grab cursor |
@@ -84,27 +89,26 @@ All configuration lives on the `blx-el="swiper"` element.
 
 ### Pagination
 
-Only initialises when `pagination` is `true` **and** the target element exists.
+Pagination is enabled automatically when an element marked `blx-el="swiper-pagination"` exists inside the block. The remaining attributes are optional tuning.
 
 | Attribute | Default | Description |
 |-----------|---------|-------------|
-| `blx-swiper-pagination` | `false` | Enable pagination |
-| `blx-swiper-pagination-el` | — | Class name of the pagination container |
+| `blx-el="swiper-pagination"` | — | Marks the pagination container (enables pagination) |
 | `blx-swiper-pagination-clickable` | `false` | Clickable bullets |
 | `blx-swiper-pagination-type` | `bullets` | `bullets`, `fraction`, `progressbar` |
 | `blx-swiper-pagination-dynamic-bullets` | `false` | Dynamic bullets |
-| `blx-swiper-pagination-bullet-class` | `swiper_bullet` | Bullet class |
+| `blx-swiper-pagination-bullet-class` | `swiper_bullet` | Bullet class (applied by Swiper to generated bullets) |
 | `blx-swiper-pagination-bullet-active-class` | `swiper_bullet-active` | Active bullet class |
 
 ### Navigation
 
-Only initialises when **both** arrow elements exist.
+Navigation is enabled automatically when **both** arrow elements exist inside the block.
 
 | Attribute | Default | Description |
 |-----------|---------|-------------|
-| `blx-swiper-navigation-next-el` | — | Class name of the next arrow |
-| `blx-swiper-navigation-prev-el` | — | Class name of the previous arrow |
-| `blx-swiper-navigation-disabled-class` | `swiper_button-disabled` | Disabled arrow class |
+| `blx-el="swiper-next"` | — | Marks the next arrow |
+| `blx-el="swiper-prev"` | — | Marks the previous arrow |
+| `blx-swiper-navigation-disabled-class` | `swiper_button-disabled` | Disabled arrow class (toggled by Swiper) |
 
 ### Thumbnails
 
@@ -118,10 +122,10 @@ Only initialises when **both** arrow elements exist.
 |-----------|---------|------------|
 | `blx-swiper-mobile-slides-per-view` | `1` | from 0px |
 | `blx-swiper-mobile-space-between` | `10` | from 0px |
-| `blx-swiper-tablet-slides-per-view` | `2` | from 767px |
-| `blx-swiper-tablet-space-between` | `15` | from 767px |
-| `blx-swiper-desktop-slides-per-view` | `3` | from 988px |
-| `blx-swiper-desktop-space-between` | `20` | from 988px |
+| `blx-swiper-tablet-slides-per-view` | `2` | from 768px |
+| `blx-swiper-tablet-space-between` | `15` | from 768px |
+| `blx-swiper-desktop-slides-per-view` | `3` | from 992px |
+| `blx-swiper-desktop-space-between` | `20` | from 992px |
 
 ## How It Works
 

@@ -44,11 +44,11 @@
           slidesPerView: int(el, 'mobile-slides-per-view', 1),
           spaceBetween: int(el, 'mobile-space-between', 10),
         },
-        767: {
+        768: {
           slidesPerView: int(el, 'tablet-slides-per-view', 2),
           spaceBetween: int(el, 'tablet-space-between', 15),
         },
-        988: {
+        992: {
           slidesPerView: int(el, 'desktop-slides-per-view', 3),
           spaceBetween: int(el, 'desktop-space-between', 20),
         },
@@ -63,24 +63,22 @@
       };
     }
 
-    // Pagination — only wire up if the target element actually exists
-    if (bool(el, 'pagination')) {
-      const paginationEl = byClass(el, str(el, 'pagination-el', ''));
-      if (paginationEl) {
-        config.pagination = {
-          el: paginationEl,
-          clickable: bool(el, 'pagination-clickable'),
-          type: str(el, 'pagination-type', 'bullets'),
-          dynamicBullets: bool(el, 'pagination-dynamic-bullets'),
-          bulletClass: str(el, 'pagination-bullet-class', 'swiper_bullet'),
-          bulletActiveClass: str(el, 'pagination-bullet-active-class', 'swiper_bullet-active'),
-        };
-      }
+    // Pagination — enabled when a pagination element is present in the block
+    const paginationEl = el.querySelector('[blx-el="swiper-pagination"]');
+    if (paginationEl) {
+      config.pagination = {
+        el: paginationEl,
+        clickable: bool(el, 'pagination-clickable'),
+        type: str(el, 'pagination-type', 'bullets'),
+        dynamicBullets: bool(el, 'pagination-dynamic-bullets'),
+        bulletClass: str(el, 'pagination-bullet-class', 'swiper_bullet'),
+        bulletActiveClass: str(el, 'pagination-bullet-active-class', 'swiper_bullet-active'),
+      };
     }
 
-    // Navigation — only wire up if both arrows exist
-    const nextEl = byClass(el, str(el, 'navigation-next-el', ''));
-    const prevEl = byClass(el, str(el, 'navigation-prev-el', ''));
+    // Navigation — enabled when both arrows are present in the block
+    const nextEl = el.querySelector('[blx-el="swiper-next"]');
+    const prevEl = el.querySelector('[blx-el="swiper-prev"]');
     if (nextEl && prevEl) {
       config.navigation = {
         nextEl,
@@ -112,10 +110,6 @@
   function int(el, name, fallback) {
     const value = parseInt(el.getAttribute(`blx-swiper-${name}`), 10);
     return Number.isNaN(value) ? fallback : value;
-  }
-
-  function byClass(el, className) {
-    return className ? el.querySelector(`.${className}`) : null;
   }
 
   // Run once on initial page load (even if script injected late)
