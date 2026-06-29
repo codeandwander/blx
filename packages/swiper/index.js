@@ -16,6 +16,16 @@
     swipers.forEach(initSwiper);
   };
 
+  // Tear down swipers in a scope (default: whole document). Call before a page
+  // transition (Barba/Swup) to destroy instances and avoid leaking listeners
+  // and timers. After destroy, the blocks can be re-initialised cleanly.
+  window.BLX_SWIPER.destroy = function (scope) {
+    const root = scope || document;
+    root.querySelectorAll('[blx-el="swiper"] .swiper').forEach((swiperRoot) => {
+      if (swiperRoot.swiper) swiperRoot.swiper.destroy(true, true);
+    });
+  };
+
   function initSwiper(el) {
     const root = el.querySelector('.swiper');
     if (!root) return;
@@ -38,6 +48,18 @@
       grabCursor: bool(el, 'grab-cursor'),
       centeredSlides: bool(el, 'centered-slides'),
       spaceBetween: int(el, 'space-between', 20),
+
+      // Auto-update when slides change or a parent becomes visible. Fixes
+      // carousels initialised inside hidden Webflow tabs/dropdowns (which
+      // otherwise size to zero) and picks up CMS-injected slides on the fly.
+      observer: true,
+      observeParents: true,
+
+      // Optional keyboard control — arrow keys when the swiper is in view.
+      keyboard: {
+        enabled: bool(el, 'keyboard'),
+        onlyInViewport: true,
+      },
 
       // Let Swiper's own A11y module run. Only slideRole is exposed so CMS
       // collections (Webflow renders these as role="list" / "listitem") can
@@ -63,8 +85,9 @@
       },
     };
 
-    // Autoplay
-    if (bool(el, 'autoplay')) {
+    // Autoplay — suppressed when the visitor prefers reduced motion (WCAG 2.2.2)
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (bool(el, 'autoplay') && !reducedMotion) {
       config.autoplay = {
         delay: int(el, 'autoplay-delay', 3000),
         disableOnInteraction: bool(el, 'autoplay-disable-on-interaction'),

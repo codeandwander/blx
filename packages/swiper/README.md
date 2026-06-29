@@ -7,7 +7,8 @@ A thin, attribute-driven wrapper around [Swiper](https://swiperjs.com/) for Webf
 - 🎛️ Full config via attributes — loop, rewind, autoplay, effects, speed and more
 - 📱 Built-in responsive breakpoints (mobile / tablet / desktop)
 - 🔢 Optional pagination, navigation arrows and thumbnails
-- ♿ Uses Swiper's own A11y module, with `slideRole` exposed for CMS collections
+- ♿ Uses Swiper's own A11y module (`slideRole` exposed for CMS), optional keyboard control, and respects reduced motion
+- 🔄 Auto-updates on injected slides and hidden-tab reveals; idempotent re-init with a `destroy()` teardown for page transitions
 - 🛡️ Safe wiring — pagination/navigation only initialise when their elements exist
 
 ## Requirements
@@ -78,6 +79,7 @@ Tuning attributes (`blx-swiper-*`) live on the `blx-el="swiper"` element. Pagina
 | `blx-swiper-centered-slides` | `false` | Centre the active slide |
 | `blx-swiper-space-between` | `20` | Gap between slides (px) |
 | `blx-swiper-slide-role` | `group` | ARIA role applied to each slide |
+| `blx-swiper-keyboard` | `false` | Allow arrow-key control when the swiper is in view |
 
 ### Autoplay
 
@@ -86,6 +88,8 @@ Tuning attributes (`blx-swiper-*`) live on the `blx-el="swiper"` element. Pagina
 | `blx-swiper-autoplay` | `false` | Enable autoplay |
 | `blx-swiper-autoplay-delay` | `3000` | Delay between transitions (ms) |
 | `blx-swiper-autoplay-disable-on-interaction` | `false` | Stop autoplay after user interaction |
+
+Autoplay is automatically suppressed for visitors who have **reduced motion** enabled in their OS (WCAG 2.2.2), even when `blx-swiper-autoplay="true"`.
 
 ### Pagination
 
@@ -132,6 +136,7 @@ Navigation is enabled automatically when **both** arrow elements exist inside th
 1. Each `[blx-el="swiper"]` block is read for its `blx-swiper-*` attributes.
 2. A Swiper config is built, with pagination, navigation and thumbs only added when their elements are present — a missing element means that feature is skipped rather than throwing.
 3. Swiper's A11y module is left on; only `slideRole` is overridden so CMS list semantics survive.
+4. `observer` and `observeParents` are enabled, so a carousel auto-updates when its slides change or a parent becomes visible. This fixes the common case of a swiper inside a hidden Webflow tab/dropdown initialising at zero width, and picks up CMS-injected slides without intervention.
 
 ## Re-initialising (dynamic content)
 
@@ -146,6 +151,20 @@ window.BLX_SWIPER();
 ```
 
 Note: `update()` recalculates slides, pagination and navigation. If you change a running carousel's *options* (not just its slides) you'll need to destroy and re-create it manually.
+
+### Tearing down
+
+`window.BLX_SWIPER.destroy()` destroys initialised swipers and cleans up their listeners and timers. Call it before a page transition (Barba, Swup) to avoid leaking instances, then re-initialise after the new content is in:
+
+```js
+// Destroy everything on the page
+window.BLX_SWIPER.destroy();
+
+// Or limit to a scope (e.g. the outgoing transition container)
+window.BLX_SWIPER.destroy(container);
+```
+
+After destroying, the blocks can be initialised cleanly again with `window.BLX_SWIPER()`.
 
 ## License
 
