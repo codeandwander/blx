@@ -1,6 +1,6 @@
 // packages/index.js
 // BLX Global Loader
-// Version: 1.0.7
+// Version: 1.0.8
 
 window.BLX = window.BLX || {};
 window.BLX.utils = window.BLX.utils || {};
@@ -13,6 +13,7 @@ import './social-share/index.js';
 import './copy-to-clipboard/index.js';
 import './mapbox/index.js';
 import './accordion/index.js';
+import './swiper/index.js';
 
 function init() {
   // TOC
@@ -48,6 +49,11 @@ function init() {
   // Accordion
   if (document.querySelector('[blx-el="accordion"]')) {
     window.BLX_ACCORDION?.();
+  }
+
+  // Swiper
+  if (document.querySelector('[blx-el="swiper"]')) {
+    window.BLX_SWIPER?.();
   }
 }
 

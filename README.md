@@ -18,6 +18,7 @@ The repository is structured so you can:
 - Mapbox package
 - GSAP Animation package
 - Accordion package
+- Swiper package
 
 ## 🚀 Usage
 
@@ -58,6 +59,11 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 
 <!-- Accordion package -->
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/accordion/index.min.js"></script>
+
+<!-- Swiper package (requires Swiper) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/swiper/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -76,6 +82,7 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Mapbox package: ~9KB
 - GSAP Animation package: ~6KB (excludes GSAP)
 - Accordion package: ~1.5KB
+- Swiper package: ~2.5KB (excludes Swiper)
 
 ## 📦 Packages
 
@@ -89,6 +96,7 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[Mapbox](packages/mapbox/)** - Interactive maps and globes with custom markers and Webflow collection integration
 - **[GSAP Animation](packages/gsap-animation/)** - Attribute-driven text animations powered by GSAP
 - **[Accordion](packages/accordion/)** - Height-animated accordions with single-open groups and start-open support
+- **[Swiper](packages/swiper/)** - Attribute-driven Swiper carousels with pagination, navigation, thumbnails and CMS-friendly a11y
 
 💡 Roadmap
 More packages will be introduced soon.
