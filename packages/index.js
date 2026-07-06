@@ -14,6 +14,7 @@ import './copy-to-clipboard/index.js';
 import './mapbox/index.js';
 import './accordion/index.js';
 import './swiper/index.js';
+import './local/index.js';
 
 function init() {
   // TOC
@@ -54,6 +55,11 @@ function init() {
   // Swiper
   if (document.querySelector('[blx-el="swiper"]')) {
     window.BLX_SWIPER?.();
+  }
+
+  // Local
+  if (document.querySelector('[blx-el="local-time"]') || document.querySelector('[blx-el="local-location"]')) {
+    window.BLX_LOCAL?.();
   }
 }
 
