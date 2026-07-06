@@ -7,7 +7,7 @@ Localises time and place for the visitor: a live clock, their country, and fixed
 - 🕒 Live ticking clock, set from the visitor's device (updates every second)
 - 🌍 Country detected via Cloudflare's `/cdn-cgi/trace` endpoint, which every Webflow-hosted site is proxied through
 - 🔁 Converts a fixed event date/time (e.g. from a Webflow CMS Date field) into the visitor's local time zone
-- 🎯 Show the full default output, or target individual parts (`hours`, `min`, `sec`, `country`, `date`, `time`) with `blx-prop`
+- 🎯 Show the full default output, or narrow it down with `blx-prop` (combine values, e.g. `blx-prop="hours min"`)
 - 🪶 No dependencies, no API keys, no permission popups
 
 ## Limitations
@@ -42,20 +42,14 @@ Renders as `HH:MM:SS`, updating every second:
 
 ### Time — individual parts
 
-Only sub-elements with a matching `blx-prop` are updated, so you can show any combination:
+`blx-prop` goes directly on the `local-time` element and picks which part(s) to show, always rendered in `hours:min:sec` order:
 
 ```html
-<div blx-el="local-time">
-  <span blx-prop="hours"></span>:<span blx-prop="min"></span>:<span blx-prop="sec"></span>
-</div>
-```
+<!-- Hours only -->
+<div blx-el="local-time" blx-prop="hours"></div>
 
-Hours only:
-
-```html
-<div blx-el="local-time">
-  <span blx-prop="hours"></span>
-</div>
+<!-- Hours and minutes, no seconds -->
+<div blx-el="local-time" blx-prop="hours min"></div>
 ```
 
 ### Location — default output
@@ -111,19 +105,19 @@ If the text is empty or can't be parsed as a date, it's left untouched rather th
 | `blx-el="local-time"` | Yes (for time) | Marks a live clock block |
 | `blx-el="local-location"` | Yes (for location) | Marks a country block |
 | `blx-el="local-convert"` | Yes (for event time) | Marks a fixed date/time (in its visible text) to convert to the visitor's time zone |
-| `blx-prop="hours"` | No | Targets the hours part within a `local-time` block |
-| `blx-prop="min"` | No | Targets the minutes part within a `local-time` block |
-| `blx-prop="sec"` | No | Targets the seconds part within a `local-time` block |
+| `blx-prop="hours"` | No | On a `local-time` element, shows hours only |
+| `blx-prop="min"` | No | On a `local-time` element, shows minutes only |
+| `blx-prop="sec"` | No | On a `local-time` element, shows seconds only |
 | `blx-prop="country"` | No | Targets the country text within a `local-location` block |
 | `blx-prop="date"` | No | On a `local-convert` element, shows the date only |
 | `blx-prop="time"` | No | On a `local-convert` element, shows the time only |
 | `blx-tz` | No | Time zone the `local-convert` source text is written in. Default: `GMT` |
 
-If no `blx-prop` children are found inside a `local-time`/`local-location` block, the block's own text is set directly with the full default output. On a `local-convert` element, omitting `blx-prop` shows the full date and time together.
+On `local-time` and `local-convert`, `blx-prop` values can be combined space-separated (e.g. `blx-prop="hours min"`), and omitting it shows the full default output. `local-location` works differently — see the targeted prop example above.
 
 ## How It Works
 
-1. **Time**: `new Date()` reads the visitor's local time straight from their device — no network request. A `setInterval` ticks every second and updates either the matched `blx-prop` children, or the block's own text if none exist.
+1. **Time**: `new Date()` reads the visitor's local time straight from their device — no network request. A `setInterval` ticks every second and rebuilds the text from whichever parts `blx-prop` requests (or all three, by default).
 2. **Location**: a `fetch('/cdn-cgi/trace')` call reads Cloudflare's own edge trace data (same-origin, no CORS, no API key), which includes a `loc=` field with a 2-letter country code. `Intl.DisplayNames` turns that into a full country name client-side.
 3. **Event time**: reads the element's own visible text, appends the assumed source time zone (`blx-tz`, default `GMT`) so the browser's date parser resolves it unambiguously, then formats the result with `Intl.DateTimeFormat` using the visitor's own detected time zone.
 

@@ -1,5 +1,5 @@
 // BLX Local
-// Version: 1.1.0
+// Version: 1.2.0
 
 (() => {
 
@@ -15,24 +15,24 @@
     const blocks = document.querySelectorAll('[blx-el="local-time"]');
     if (!blocks.length) return;
 
+    const PARTS = ['hours', 'min', 'sec'];
+
     const tick = () => {
       const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      const sec = String(now.getSeconds()).padStart(2, '0');
+      const values = {
+        hours: String(now.getHours()).padStart(2, '0'),
+        min: String(now.getMinutes()).padStart(2, '0'),
+        sec: String(now.getSeconds()).padStart(2, '0'),
+      };
 
       blocks.forEach(block => {
-        const hoursEl = block.querySelector('[blx-prop="hours"]');
-        const minEl = block.querySelector('[blx-prop="min"]');
-        const secEl = block.querySelector('[blx-prop="sec"]');
+        const prop = block.getAttribute('blx-prop');
+        const requested = prop ? prop.trim().split(/\s+/) : PARTS;
+        const parts = PARTS.filter(part => requested.includes(part));
 
-        if (hoursEl || minEl || secEl) {
-          if (hoursEl) hoursEl.textContent = hours;
-          if (minEl) minEl.textContent = min;
-          if (secEl) secEl.textContent = sec;
-        } else {
-          block.textContent = `${hours}:${min}:${sec}`;
-        }
+        block.textContent = (parts.length ? parts : PARTS)
+          .map(part => values[part])
+          .join(':');
       });
     };
 
