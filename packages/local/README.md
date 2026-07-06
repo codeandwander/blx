@@ -77,6 +77,8 @@ The zone abbreviation is included automatically when `blx-tz` is set and `blx-pr
 
 An invalid `blx-tz` value leaves that block's markup untouched rather than breaking the clock for other blocks on the page.
 
+**Zone label caveat:** the time itself is always correct for the pinned zone, but the abbreviation text (`BST` vs `GMT+1`, `MDT` vs `GMT-6`) depends on the *visitor's own browser locale*, not the pinned city — each locale only carries friendly names for zones it recognises, and falls back to a generic UTC offset for the rest. A US-locale visitor sees `MDT` for Denver but might see `GMT+1` for London; a UK-locale visitor sees `BST` for London but might see `GMT-6` for Denver. This is a limitation of the browser's `Intl` API, not something a drop-in script can fully paper over.
+
 ### Location — default output
 
 Renders the visitor's country name (e.g. "United Kingdom"):

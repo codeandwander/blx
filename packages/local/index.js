@@ -1,5 +1,5 @@
 // BLX Local
-// Version: 1.3.0
+// Version: 1.3.1
 
 (() => {
 
@@ -27,13 +27,14 @@
 
         let values;
         try {
-          const parts = new Intl.DateTimeFormat('en-GB', {
+          const parts = new Intl.DateTimeFormat(undefined, {
             timeZone: tz,
             hourCycle: 'h23',
             hour: '2-digit',
             minute: '2-digit',
             second: '2-digit',
             timeZoneName: 'short',
+            numberingSystem: 'latn',
           }).formatToParts(now).reduce((acc, { type, value }) => {
             acc[type] = value;
             return acc;
