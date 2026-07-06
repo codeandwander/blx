@@ -1,5 +1,5 @@
 // BLX Local
-// Version: 1.2.0
+// Version: 1.3.0
 
 (() => {
 
@@ -10,29 +10,55 @@
     initConvert();
   };
 
-  // Live clock — set from the visitor's own device, so no network request is needed
+  // Live clock — from the visitor's own device by default, or pinned to a
+  // fixed IANA zone (e.g. blx-tz="Europe/London") for things like a footer
+  // listing office hours in several cities.
   function initTime() {
     const blocks = document.querySelectorAll('[blx-el="local-time"]');
     if (!blocks.length) return;
 
-    const PARTS = ['hours', 'min', 'sec'];
+    const NUMERIC_PARTS = ['hours', 'min', 'sec'];
 
     const tick = () => {
       const now = new Date();
-      const values = {
-        hours: String(now.getHours()).padStart(2, '0'),
-        min: String(now.getMinutes()).padStart(2, '0'),
-        sec: String(now.getSeconds()).padStart(2, '0'),
-      };
 
       blocks.forEach(block => {
-        const prop = block.getAttribute('blx-prop');
-        const requested = prop ? prop.trim().split(/\s+/) : PARTS;
-        const parts = PARTS.filter(part => requested.includes(part));
+        const tz = block.getAttribute('blx-tz') || undefined;
 
-        block.textContent = (parts.length ? parts : PARTS)
-          .map(part => values[part])
-          .join(':');
+        let values;
+        try {
+          const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            hourCycle: 'h23',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZoneName: 'short',
+          }).formatToParts(now).reduce((acc, { type, value }) => {
+            acc[type] = value;
+            return acc;
+          }, {});
+
+          values = { hours: parts.hour, min: parts.minute, sec: parts.second, zone: parts.timeZoneName };
+        } catch (e) {
+          // Invalid blx-tz — leave this block's markup untouched
+          return;
+        }
+
+        const prop = block.getAttribute('blx-prop');
+        const requested = prop
+          ? prop.trim().split(/\s+/)
+          : tz
+            ? [...NUMERIC_PARTS, 'zone']
+            : NUMERIC_PARTS;
+
+        const numeric = NUMERIC_PARTS.filter(part => requested.includes(part));
+        const finalNumeric = numeric.length ? numeric : NUMERIC_PARTS;
+
+        let text = finalNumeric.map(part => values[part]).join(':');
+        if (requested.includes('zone')) text += ` ${values.zone}`;
+
+        block.textContent = text;
       });
     };
 

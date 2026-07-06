@@ -4,7 +4,7 @@ Localises time and place for the visitor: a live clock, their country, and fixed
 
 ## Features
 
-- 🕒 Live ticking clock, set from the visitor's device (updates every second)
+- 🕒 Live ticking clock, set from the visitor's device by default, or pinned to a fixed city/zone (e.g. an office-hours footer)
 - 🌍 Country detected via Cloudflare's `/cdn-cgi/trace` endpoint, which every Webflow-hosted site is proxied through
 - 🔁 Converts a fixed event date/time (e.g. from a Webflow CMS Date field) into the visitor's local time zone
 - 🎯 Show the full default output, or narrow it down with `blx-prop` (combine values, e.g. `blx-prop="hours min"`)
@@ -51,6 +51,31 @@ Renders as `HH:MM:SS`, updating every second:
 <!-- Hours and minutes, no seconds -->
 <div blx-el="local-time" blx-prop="hours min"></div>
 ```
+
+### Time — fixed to a specific city/zone
+
+By default `local-time` shows the visitor's own device time. Set `blx-tz` to a [IANA time zone name](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) to pin it instead — useful for something like an office-hours footer that should read the same for every visitor:
+
+```html
+<div>London <span blx-el="local-time" blx-tz="Europe/London"></span></div>
+<div>Düsseldorf <span blx-el="local-time" blx-tz="Europe/Berlin"></span></div>
+<div>Stockholm <span blx-el="local-time" blx-tz="Europe/Stockholm"></span></div>
+<div>Denver <span blx-el="local-time" blx-tz="America/Denver"></span></div>
+```
+
+Renders e.g. `17:38:45 BST`, `18:38:45 CEST`, `18:38:45 CEST`, `10:38:45 MDT` — DST is handled automatically, since it's resolved by the browser against the real IANA zone rather than a fixed offset.
+
+The zone abbreviation is included automatically when `blx-tz` is set and `blx-prop` is omitted. Combine it explicitly with `blx-prop` if you want it alongside specific parts, or leave it out to suppress it:
+
+```html
+<!-- Hours and minutes only, no zone label -->
+<div blx-el="local-time" blx-tz="Europe/London" blx-prop="hours min"></div>
+
+<!-- Hours and minutes with the zone label -->
+<div blx-el="local-time" blx-tz="Europe/London" blx-prop="hours min zone"></div>
+```
+
+An invalid `blx-tz` value leaves that block's markup untouched rather than breaking the clock for other blocks on the page.
 
 ### Location — default output
 
@@ -108,16 +133,20 @@ If the text is empty or can't be parsed as a date, it's left untouched rather th
 | `blx-prop="hours"` | No | On a `local-time` element, shows hours only |
 | `blx-prop="min"` | No | On a `local-time` element, shows minutes only |
 | `blx-prop="sec"` | No | On a `local-time` element, shows seconds only |
+| `blx-prop="zone"` | No | On a `local-time` element, includes the zone abbreviation (e.g. `BST`) |
 | `blx-prop="country"` | No | Targets the country text within a `local-location` block |
 | `blx-prop="date"` | No | On a `local-convert` element, shows the date only |
 | `blx-prop="time"` | No | On a `local-convert` element, shows the time only |
-| `blx-tz` | No | Time zone the `local-convert` source text is written in. Default: `GMT` |
+| `blx-tz` (on `local-time`) | No | Pins the clock to a fixed [IANA zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones), e.g. `Europe/London`. Default: visitor's own device zone |
+| `blx-tz` (on `local-convert`) | No | Zone the source text is written in — a loose abbreviation like `EST` is fine here. Default: `GMT` |
 
-On `local-time` and `local-convert`, `blx-prop` values can be combined space-separated (e.g. `blx-prop="hours min"`), and omitting it shows the full default output. `local-location` works differently — see the targeted prop example above.
+On `local-time` and `local-convert`, `blx-prop` values can be combined space-separated (e.g. `blx-prop="hours min"`), and omitting it shows the full default output. On `local-time`, `zone` is included automatically when `blx-tz` is set and `blx-prop` is omitted. `local-location` works differently — see the targeted prop example above.
+
+Note: `blx-tz` means slightly different things on the two elements — `local-time` needs a real IANA zone name (for correct DST handling on an ongoing clock), while `local-convert` just needs something the browser's date parser recognises as a zone suffix (used once, for a fixed date).
 
 ## How It Works
 
-1. **Time**: `new Date()` reads the visitor's local time straight from their device — no network request. A `setInterval` ticks every second and rebuilds the text from whichever parts `blx-prop` requests (or all three, by default).
+1. **Time**: reads the visitor's local time straight from their device by default, or a fixed zone if `blx-tz` is set — no network request either way. A `setInterval` ticks every second and rebuilds the text from whichever parts `blx-prop` requests (or the full default).
 2. **Location**: a `fetch('/cdn-cgi/trace')` call reads Cloudflare's own edge trace data (same-origin, no CORS, no API key), which includes a `loc=` field with a 2-letter country code. `Intl.DisplayNames` turns that into a full country name client-side.
 3. **Event time**: reads the element's own visible text, appends the assumed source time zone (`blx-tz`, default `GMT`) so the browser's date parser resolves it unambiguously, then formats the result with `Intl.DateTimeFormat` using the visitor's own detected time zone.
 
