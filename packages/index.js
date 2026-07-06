@@ -58,7 +58,11 @@ function init() {
   }
 
   // Local
-  if (document.querySelector('[blx-el="local-time"]') || document.querySelector('[blx-el="local-location"]')) {
+  if (
+    document.querySelector('[blx-el="local-time"]') ||
+    document.querySelector('[blx-el="local-location"]') ||
+    document.querySelector('[blx-el="local-convert"]')
+  ) {
     window.BLX_LOCAL?.();
   }
 }

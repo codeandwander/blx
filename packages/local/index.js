@@ -1,5 +1,5 @@
 // BLX Local
-// Version: 1.0.0
+// Version: 1.1.0
 
 (() => {
 
@@ -7,6 +7,7 @@
   window.BLX_LOCAL = function () {
     initTime();
     initLocation();
+    initConvert();
   };
 
   // Live clock — set from the visitor's own device, so no network request is needed
@@ -68,6 +69,44 @@
       .catch(() => {
         // Site isn't proxied through Cloudflare, or the request failed — leave markup untouched
       });
+  }
+
+  // Event time conversion — reads a fixed date/time from the element's own
+  // text (e.g. a Webflow CMS-bound Date field) and renders it in the
+  // visitor's local time zone. The source is assumed to be GMT unless
+  // overridden with blx-tz (e.g. blx-tz="EST").
+  function initConvert() {
+    const blocks = document.querySelectorAll('[blx-el="local-convert"]');
+    if (!blocks.length) return;
+
+    blocks.forEach(block => {
+      const raw = block.textContent.trim();
+      if (!raw) return;
+
+      const tz = block.getAttribute('blx-tz') || 'GMT';
+      const date = new Date(`${raw} ${tz}`);
+      if (Number.isNaN(date.getTime())) return;
+
+      const prop = block.getAttribute('blx-prop');
+      let options;
+
+      if (prop === 'date') {
+        options = { year: 'numeric', month: 'long', day: 'numeric' };
+      } else if (prop === 'time') {
+        options = { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' };
+      } else {
+        options = {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short',
+        };
+      }
+
+      block.textContent = new Intl.DateTimeFormat(undefined, options).format(date);
+    });
   }
 
   // Run once on initial page load (even if script injected late)
