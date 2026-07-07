@@ -19,6 +19,7 @@ The repository is structured so you can:
 - GSAP Animation package
 - Accordion package
 - Swiper package
+- Local package
 
 ## 🚀 Usage
 
@@ -64,6 +65,9 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/swiper/index.min.js"></script>
+
+<!-- Local package -->
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/local/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -83,6 +87,7 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - GSAP Animation package: ~6KB (excludes GSAP)
 - Accordion package: ~1.5KB
 - Swiper package: ~2.5KB (excludes Swiper)
+- Local package: ~1.3KB
 
 ## 📦 Packages
 
@@ -97,6 +102,7 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[GSAP Animation](packages/gsap-animation/)** - Attribute-driven text animations powered by GSAP
 - **[Accordion](packages/accordion/)** - Height-animated accordions with single-open groups and start-open support
 - **[Swiper](packages/swiper/)** - Attribute-driven Swiper carousels with pagination, navigation, thumbnails and CMS-friendly a11y
+- **[Local](packages/local/)** - Displays the visitor's live local time and Cloudflare-detected country
 
 💡 Roadmap
 More packages will be introduced soon.
