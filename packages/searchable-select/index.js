@@ -45,7 +45,7 @@
     const labelEl = standalone
       ? scope.querySelector('[blx-el="searchable-select-label"]')
       : getLabelElement(container, trigger);
-    if (!standalone && !container.dataset.blxSelectInitialLabel) {
+    if (labelEl && !container.dataset.blxSelectInitialLabel) {
       container.dataset.blxSelectInitialLabel = labelEl.textContent.trim() || 'Select option';
     }
     const countEl = scope.querySelector('[blx-el="searchable-select-count"]');
