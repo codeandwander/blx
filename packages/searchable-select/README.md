@@ -128,12 +128,13 @@ Or pin to a specific version:
 
 ### Standalone panel mode
 
-If you only need the searchable list itself, you can use `blx-el="searchable-select-panel"` on its own without the dropdown wrapper/trigger:
+If you only need the searchable list itself, you can use `blx-el="searchable-select-panel"` on its own without the dropdown wrapper/trigger. In standalone mode, place any `data-blx-select-*` configuration on the panel element itself:
 
 ```html
 <div blx-el="searchable-select-panel" data-blx-select-multiple="true">
   <div class="select-header">
     <strong>Sector</strong>
+    <span blx-el="searchable-select-label">All sectors</span>
     <span blx-el="searchable-select-count"></span>
     <button blx-el="searchable-select-clear" type="button">Clear all</button>
   </div>
@@ -172,7 +173,7 @@ If you only need the searchable list itself, you can use `blx-el="searchable-sel
 
 | Attribute | Description |
 |-----------|-------------|
-| `blx-el="searchable-select-label"` | Element inside the trigger that receives the selected summary; recommended whenever the trigger also contains icons or other decorative UI |
+| `blx-el="searchable-select-label"` | Element that receives the selected summary; in dropdown mode it usually lives inside the trigger, and in standalone mode it can live anywhere inside the panel |
 | `blx-el="searchable-select-count"` | Count badge; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-clear"` | Clear-all button; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-search"` | Search field used to filter options |
