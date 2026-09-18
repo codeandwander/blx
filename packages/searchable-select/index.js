@@ -7,12 +7,9 @@
   const roots = new Set();
   const instances = new WeakMap();
   let hasDocumentClickListener = false;
-  let hasBootstrapped = false;
 
   // Reusable function — exposed globally
   window.BLX_SEARCHABLE_SELECT = function () {
-    hasBootstrapped = true;
-
     const selects = document.querySelectorAll('[blx-el="searchable-select"]');
     if (!selects.length) return;
 
@@ -172,23 +169,35 @@
   }
 
   function setupOption(option, config, options, sync, close) {
+    const input = getOptionInput(option);
+
     option.setAttribute('role', 'option');
     option.setAttribute('aria-selected', String(isOptionSelected(option)));
     option.classList.toggle(config.selectedClass, isOptionSelected(option));
     option.classList.toggle(config.disabledClass, isDisabled(option));
 
-    if (!getOptionInput(option) && !option.hasAttribute('tabindex')) {
+    if (!input && !option.hasAttribute('tabindex')) {
       option.tabIndex = 0;
     }
 
-    if (!getOptionInput(option)) {
+    if (!input) {
       option.addEventListener('click', (event) => {
-        event.preventDefault();
+        if (!isNativeInteractive(option)) {
+          event.preventDefault();
+        }
         activateOption(option, config, options, sync, close);
       });
     }
 
-    if (!getOptionInput(option) && !isNativeInteractive(option)) {
+    const keyTarget = input || option;
+    keyTarget.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        focusRelativeOption(options, option, event.key === 'ArrowDown' ? 1 : -1);
+      }
+    });
+
+    if (!input && !isNativeInteractive(option)) {
       option.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
@@ -326,6 +335,24 @@
     }
   }
 
+  function focusRelativeOption(options, currentOption, direction) {
+    const visible = options.filter((option) => !option.hidden && !isDisabled(option));
+    if (!visible.length) return;
+
+    const index = visible.indexOf(currentOption);
+    const nextIndex = index === -1
+      ? 0
+      : (index + direction + visible.length) % visible.length;
+    const target = visible[nextIndex];
+    const input = getOptionInput(target);
+
+    if (input && !input.disabled) {
+      input.focus();
+    } else {
+      target.focus();
+    }
+  }
+
   function getOptionInput(option) {
     return option.querySelector('input[type="checkbox"], input[type="radio"]');
   }
@@ -421,7 +448,6 @@
   }
 
   function bootstrap() {
-    if (hasBootstrapped) return;
     window.BLX_SEARCHABLE_SELECT();
   }
 
