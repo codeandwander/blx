@@ -15,6 +15,7 @@ import './mapbox/index.js';
 import './accordion/index.js';
 import './swiper/index.js';
 import './local/index.js';
+import './searchable-select/index.js';
 
 function init() {
   // TOC
@@ -64,6 +65,11 @@ function init() {
     document.querySelector('[blx-el="local-convert"]')
   ) {
     window.BLX_LOCAL?.();
+  }
+
+  // Searchable Select
+  if (document.querySelector('[blx-el="searchable-select"]')) {
+    window.BLX_SEARCHABLE_SELECT?.();
   }
 }
 

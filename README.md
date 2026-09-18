@@ -20,6 +20,7 @@ The repository is structured so you can:
 - Accordion package
 - Swiper package
 - Local package
+- Searchable Select package
 
 ## 🚀 Usage
 
@@ -68,6 +69,9 @@ All packages are available via jsDelivr CDN, which automatically minifies them w
 
 <!-- Local package -->
 <script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/local/index.min.js"></script>
+
+<!-- Searchable Select package -->
+<script src="https://cdn.jsdelivr.net/gh/codeandwander/blx@latest/packages/searchable-select/index.min.js"></script>
 ```
 
 **Or pin to a specific version:**
@@ -88,6 +92,7 @@ The source packages are lightweight and automatically minified by jsDelivr on de
 - Accordion package: ~1.5KB
 - Swiper package: ~2.5KB (excludes Swiper)
 - Local package: ~1.3KB
+- Searchable Select package: ~6KB
 
 ## 📦 Packages
 
@@ -103,6 +108,7 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[Accordion](packages/accordion/)** - Height-animated accordions with single-open groups and start-open support
 - **[Swiper](packages/swiper/)** - Attribute-driven Swiper carousels with pagination, navigation, thumbnails and CMS-friendly a11y
 - **[Local](packages/local/)** - Displays the visitor's live local time and Cloudflare-detected country
+- **[Searchable Select](packages/searchable-select/)** - Searchable single-select and multiselect dropdowns with flexible attribute wiring
 
 💡 Roadmap
 More packages will be introduced soon.
