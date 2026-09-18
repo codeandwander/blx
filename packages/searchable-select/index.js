@@ -4,22 +4,34 @@
 (() => {
 
   let panelCount = 0;
+  const roots = new Set();
+  const instances = new WeakMap();
+  let hasDocumentClickListener = false;
 
   // Reusable function — exposed globally
   window.BLX_SEARCHABLE_SELECT = function () {
     const selects = document.querySelectorAll('[blx-el="searchable-select"]');
     if (!selects.length) return;
 
+    bindDocumentClickListener();
     selects.forEach(initSelect);
   };
 
   function initSelect(root) {
+    if (instances.has(root)) {
+      instances.get(root).sync();
+      return;
+    }
+
     const trigger = root.querySelector('[blx-el="searchable-select-trigger"]');
     const panel = root.querySelector('[blx-el="searchable-select-panel"]');
     const options = Array.from(root.querySelectorAll('[blx-el="searchable-select-option"]'));
     if (!trigger || !panel || !options.length) return;
 
     const labelEl = getLabelElement(root, trigger);
+    if (!root.dataset.blxSelectInitialLabel) {
+      root.dataset.blxSelectInitialLabel = labelEl.textContent.trim() || 'Select option';
+    }
     const countEl = root.querySelector('[blx-el="searchable-select-count"]');
     const clearEl = root.querySelector('[blx-el="searchable-select-clear"]');
     const searchInput = root.querySelector('[blx-el="searchable-select-search"]');
@@ -52,12 +64,22 @@
     panel.hidden = true;
     root.classList.remove(config.openClass);
 
-    options.forEach((option) => setupOption(option, config));
-    syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
+    const sync = () => {
+      syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
+    };
+    const close = () => {
+      closePanel(root, trigger, panel, searchInput, config);
+    };
+
+    roots.add(root);
+    instances.set(root, { sync, close });
+
+    options.forEach((option) => setupOption(option, config, options, sync, close));
+    sync();
 
     trigger.addEventListener('click', (event) => {
       event.preventDefault();
-      isOpen(root, config) ? closePanel(root, trigger, panel, searchInput, config) : openPanel(root, trigger, panel, searchInput, config);
+      isOpen(root, config) ? close() : openPanel(root, trigger, panel, searchInput, config);
     });
 
     trigger.addEventListener('keydown', (event) => {
@@ -77,7 +99,7 @@
       event.preventDefault();
       event.stopPropagation();
       clearSelection(options);
-      syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
+      sync();
     });
 
     options.forEach((option) => {
@@ -93,49 +115,24 @@
             });
           }
 
-          syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
+          sync();
           if (input.checked && config.closeOnSelect) {
-            closePanel(root, trigger, panel, searchInput, config);
+            close();
           }
         });
-
-        return;
       }
-
-      option.addEventListener('click', (event) => {
-        event.preventDefault();
-        if (isDisabled(option)) return;
-
-        if (config.multiple) {
-          setOptionSelected(option, !isOptionSelected(option));
-        } else {
-          options.forEach((candidate) => {
-            setOptionSelected(candidate, candidate === option);
-          });
-        }
-
-        syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
-        if (!config.multiple && config.closeOnSelect) {
-          closePanel(root, trigger, panel, searchInput, config);
-        }
-      });
     });
 
     root.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
-      closePanel(root, trigger, panel, searchInput, config);
+      close();
       trigger.focus();
-    });
-
-    document.addEventListener('click', (event) => {
-      if (!root.contains(event.target)) {
-        closePanel(root, trigger, panel, searchInput, config);
-      }
     });
   }
 
   function getConfig(root, labelEl, searchInput, countEl, options) {
     const props = getProps(root);
+    const initialLabel = root.dataset.blxSelectInitialLabel || labelEl.textContent.trim() || 'Select option';
     const explicitMultiple = root.dataset.blxSelectMultiple;
     const hasCheckboxes = options.some((option) => getOptionInput(option)?.type === 'checkbox');
     const multiple = explicitMultiple
@@ -144,8 +141,8 @@
 
     return {
       multiple,
-      placeholder: root.dataset.blxSelectPlaceholder || labelEl.textContent.trim() || 'Select option',
-      multipleLabel: root.dataset.blxSelectMultiLabel || root.dataset.blxSelectPlaceholder || labelEl.textContent.trim() || 'Select options',
+      placeholder: root.dataset.blxSelectPlaceholder || initialLabel,
+      multipleLabel: root.dataset.blxSelectMultiLabel || root.dataset.blxSelectPlaceholder || initialLabel,
       summary: root.dataset.blxSelectSummary || (countEl ? 'count' : 'labels'),
       separator: root.dataset.blxSelectSeparator || ', ',
       valueSeparator: root.dataset.blxSelectValueSeparator || ',',
@@ -164,7 +161,7 @@
     };
   }
 
-  function setupOption(option, config) {
+  function setupOption(option, config, options, sync, close) {
     option.setAttribute('role', 'option');
     option.setAttribute('aria-selected', String(isOptionSelected(option)));
     option.classList.toggle(config.selectedClass, isOptionSelected(option));
@@ -174,12 +171,36 @@
       option.tabIndex = 0;
     }
 
+    if (!getOptionInput(option)) {
+      option.addEventListener('click', (event) => {
+        event.preventDefault();
+        activateOption(option, config, options, sync, close);
+      });
+    }
+
     if (!getOptionInput(option) && !isNativeInteractive(option)) {
       option.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        option.click();
+        activateOption(option, config, options, sync, close);
       });
+    }
+  }
+
+  function activateOption(option, config, options, sync, close) {
+    if (isDisabled(option)) return;
+
+    if (config.multiple) {
+      setOptionSelected(option, !isOptionSelected(option));
+    } else {
+      options.forEach((candidate) => {
+        setOptionSelected(candidate, candidate === option);
+      });
+    }
+
+    sync();
+    if (!config.multiple && config.closeOnSelect) {
+      close();
     }
   }
 
@@ -352,6 +373,25 @@
 
   function isNativeInteractive(option) {
     return ['A', 'BUTTON', 'INPUT', 'LABEL'].includes(option.tagName);
+  }
+
+  function bindDocumentClickListener() {
+    if (hasDocumentClickListener) return;
+    hasDocumentClickListener = true;
+
+    document.addEventListener('click', (event) => {
+      roots.forEach((root) => {
+        if (!root.isConnected) {
+          roots.delete(root);
+          instances.delete(root);
+          return;
+        }
+
+        if (!root.contains(event.target)) {
+          instances.get(root)?.close();
+        }
+      });
+    });
   }
 
   function getProps(el) {
