@@ -67,6 +67,10 @@ function init() {
     window.BLX_LOCAL?.();
   }
 
+  // Searchable Select
+  if (document.querySelector('[blx-el="searchable-select"]')) {
+    window.BLX_SEARCHABLE_SELECT?.();
+  }
 }
 
 if (document.readyState === 'loading') {

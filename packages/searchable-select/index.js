@@ -7,9 +7,12 @@
   const roots = new Set();
   const instances = new WeakMap();
   let hasDocumentClickListener = false;
+  let hasBootstrapped = false;
 
   // Reusable function — exposed globally
   window.BLX_SEARCHABLE_SELECT = function () {
+    hasBootstrapped = true;
+
     const selects = document.querySelectorAll('[blx-el="searchable-select"]');
     if (!selects.length) return;
 
@@ -338,7 +341,7 @@
       return node.nodeType === Node.TEXT_NODE && node.textContent.trim();
     });
 
-    label.textContent = textNode?.textContent.trim() || trigger.textContent.trim() || 'Select option';
+    label.textContent = root.dataset.blxSelectPlaceholder || textNode?.textContent.trim() || 'Select option';
     if (textNode) textNode.textContent = '';
 
     trigger.insertBefore(label, trigger.firstChild);
@@ -356,13 +359,6 @@
 
   function isOptionSelected(option) {
     const input = getOptionInput(option);
-    if (input?.type === 'radio') {
-      const group = option.closest('[blx-el="searchable-select-options"]') || option.closest('[blx-el="searchable-select"]');
-      const checked = Array.from(group?.querySelectorAll('input[type="radio"]') || []).find((candidate) => {
-        return candidate.name === input.name && candidate.checked;
-      });
-      return checked === input;
-    }
     if (input) return input.checked;
     return option.dataset.selected === 'true' || option.getAttribute('aria-selected') === 'true';
   }
@@ -424,11 +420,16 @@
     return root.classList.contains(config.openClass);
   }
 
+  function bootstrap() {
+    if (hasBootstrapped) return;
+    window.BLX_SEARCHABLE_SELECT();
+  }
+
   // Run once on initial page load (even if script injected late)
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.BLX_SEARCHABLE_SELECT);
+    document.addEventListener('DOMContentLoaded', bootstrap);
   } else {
-    window.BLX_SEARCHABLE_SELECT();
+    bootstrap();
   }
 
 })();

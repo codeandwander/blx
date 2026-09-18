@@ -141,7 +141,7 @@ Or pin to a specific version:
 
 | Attribute | Description |
 |-----------|-------------|
-| `blx-el="searchable-select-label"` | Element inside the trigger that receives the selected summary |
+| `blx-el="searchable-select-label"` | Element inside the trigger that receives the selected summary; recommended whenever the trigger also contains icons or other decorative UI |
 | `blx-el="searchable-select-count"` | Count badge; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-clear"` | Clear-all button; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-search"` | Search field used to filter options |
