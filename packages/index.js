@@ -68,7 +68,10 @@ function init() {
   }
 
   // Searchable Select
-  if (document.querySelector('[blx-el="searchable-select"]')) {
+  if (
+    document.querySelector('[blx-el="searchable-select"]') ||
+    document.querySelector('[blx-el="searchable-select-panel"]')
+  ) {
     window.BLX_SEARCHABLE_SELECT?.();
   }
 }

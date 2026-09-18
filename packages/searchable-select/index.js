@@ -15,43 +15,56 @@
   window.BLX_SEARCHABLE_SELECT = function () {
     hasInitialised = true;
 
-    const selects = document.querySelectorAll('[blx-el="searchable-select"]');
-    if (!selects.length) return;
+    const selects = Array.from(document.querySelectorAll('[blx-el="searchable-select"]'));
+    const standalonePanels = Array.from(document.querySelectorAll('[blx-el="searchable-select-panel"]'))
+      .filter((panel) => !panel.closest('[blx-el="searchable-select"]'));
+    if (!selects.length && !standalonePanels.length) return;
 
     bindDocumentClickListener();
-    selects.forEach(initSelect);
+    selects.forEach((select) => initSelect(select));
+    standalonePanels.forEach((panel) => initSelect(panel, true));
   };
 
-  function initSelect(root) {
-    if (instances.has(root)) {
-      instances.get(root).sync();
+  function initSelect(container, standalone) {
+    if (instances.has(container)) {
+      instances.get(container).sync();
       return;
     }
 
-    const trigger = root.querySelector('[blx-el="searchable-select-trigger"]');
-    const panel = root.querySelector('[blx-el="searchable-select-panel"]');
-    const options = Array.from(root.querySelectorAll('[blx-el="searchable-select-option"]'));
-    if (!trigger || !panel || !options.length) return;
+    const root = standalone ? null : container;
+    const panel = standalone
+      ? container
+      : container.querySelector('[blx-el="searchable-select-panel"]');
+    const trigger = standalone
+      ? null
+      : container.querySelector('[blx-el="searchable-select-trigger"]');
+    const scope = standalone ? panel : container;
+    const options = Array.from(panel?.querySelectorAll('[blx-el="searchable-select-option"]') || []);
+    if ((!standalone && (!trigger || !panel)) || !options.length) return;
 
-    const labelEl = getLabelElement(root, trigger);
-    if (!root.dataset.blxSelectInitialLabel) {
-      root.dataset.blxSelectInitialLabel = labelEl.textContent.trim() || 'Select option';
+    const labelEl = standalone
+      ? scope.querySelector('[blx-el="searchable-select-label"]')
+      : getLabelElement(container, trigger);
+    if (!standalone && !container.dataset.blxSelectInitialLabel) {
+      container.dataset.blxSelectInitialLabel = labelEl.textContent.trim() || 'Select option';
     }
-    const countEl = root.querySelector('[blx-el="searchable-select-count"]');
-    const clearEl = root.querySelector('[blx-el="searchable-select-clear"]');
-    const searchInput = root.querySelector('[blx-el="searchable-select-search"]');
-    const emptyEl = root.querySelector('[blx-el="searchable-select-empty"]');
-    const valueInput = root.querySelector('[blx-el="searchable-select-input"]');
-    const listbox = root.querySelector('[blx-el="searchable-select-options"]') || panel;
-    const config = getConfig(root, labelEl, searchInput, countEl, options);
+    const countEl = scope.querySelector('[blx-el="searchable-select-count"]');
+    const clearEl = scope.querySelector('[blx-el="searchable-select-clear"]');
+    const searchInput = scope.querySelector('[blx-el="searchable-select-search"]');
+    const emptyEl = scope.querySelector('[blx-el="searchable-select-empty"]');
+    const valueInput = scope.querySelector('[blx-el="searchable-select-input"]');
+    const listbox = panel.querySelector('[blx-el="searchable-select-options"]') || panel;
+    const config = getConfig(container, labelEl, searchInput, countEl, options, standalone);
 
     if (!panel.id) {
       panel.id = `blx-searchable-select-panel-${++panelCount}`;
     }
 
-    trigger.setAttribute('aria-haspopup', 'listbox');
-    trigger.setAttribute('aria-controls', panel.id);
-    trigger.setAttribute('aria-expanded', 'false');
+    if (trigger) {
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-controls', panel.id);
+      trigger.setAttribute('aria-expanded', 'false');
+    }
     listbox.setAttribute('role', 'listbox');
     if (config.multiple) {
       listbox.setAttribute('aria-multiselectable', 'true');
@@ -66,42 +79,48 @@
       emptyEl.textContent = config.emptyText;
     }
 
-    panel.hidden = true;
-    root.classList.remove(config.openClass);
+    if (!standalone) {
+      panel.hidden = true;
+      root.classList.remove(config.openClass);
+    }
 
     const sync = () => {
-      syncState(root, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
+      syncState(container, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
     };
     const close = () => {
       closePanel(root, trigger, panel, searchInput, config);
     };
 
-    roots.add(root);
-    instances.set(root, { sync, close });
+    if (root) {
+      roots.add(root);
+    }
+    instances.set(container, { sync, close });
 
     options.forEach((option) => setupOption(option, config, options, sync, close));
     sync();
 
-    trigger.addEventListener('click', (event) => {
-      event.preventDefault();
-      if (isOpen(root, config)) {
-        close();
-        return;
-      }
+    if (trigger) {
+      trigger.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (isOpen(root, config)) {
+          close();
+          return;
+        }
 
-      sync();
-      openPanel(root, trigger, panel, searchInput, config, options);
-    });
-
-    trigger.addEventListener('keydown', (event) => {
-      if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      if (!isOpen(root, config)) {
         sync();
         openPanel(root, trigger, panel, searchInput, config, options);
-      }
-      focusFirstOption(options, searchInput);
-    });
+      });
+
+      trigger.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        if (!isOpen(root, config)) {
+          sync();
+          openPanel(root, trigger, panel, searchInput, config, options);
+        }
+        focusFirstOption(options, searchInput);
+      });
+    }
 
     searchInput?.addEventListener('input', () => {
       filterOptions(options, searchInput.value, config, emptyEl);
@@ -135,18 +154,20 @@
       }
     });
 
-    panel.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      if (!isEscapeSurface(event.target, panel, searchInput, options)) return;
-      close();
-      trigger.focus();
-    });
+    if (trigger) {
+      panel.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (!isEscapeSurface(event.target, panel, searchInput, options)) return;
+        close();
+        trigger.focus();
+      });
+    }
   }
 
-  function getConfig(root, labelEl, searchInput, countEl, options) {
-    const props = getProps(root);
-    const initialLabel = root.dataset.blxSelectInitialLabel || labelEl.textContent.trim() || 'Select option';
-    const explicitMultiple = root.dataset.blxSelectMultiple;
+  function getConfig(container, labelEl, searchInput, countEl, options, standalone) {
+    const props = getProps(container);
+    const initialLabel = container.dataset.blxSelectInitialLabel || labelEl?.textContent.trim() || '';
+    const explicitMultiple = container.dataset.blxSelectMultiple;
     const hasCheckboxes = options.some((option) => getOptionInput(option)?.type === 'checkbox');
     const multiple = explicitMultiple
       ? explicitMultiple === 'true'
@@ -154,23 +175,23 @@
 
     return {
       multiple,
-      placeholder: root.dataset.blxSelectPlaceholder || initialLabel,
-      multipleLabel: root.dataset.blxSelectMultiLabel || root.dataset.blxSelectPlaceholder || initialLabel,
-      summary: root.dataset.blxSelectSummary || (countEl ? 'count' : 'labels'),
-      separator: root.dataset.blxSelectSeparator || ', ',
-      valueSeparator: root.dataset.blxSelectValueSeparator || ',',
-      searchPlaceholder: root.dataset.blxSelectSearchPlaceholder || searchInput?.getAttribute('placeholder') || 'Search...',
-      searchMode: root.dataset.blxSelectSearchMode === 'starts-with' ? 'starts-with' : 'contains',
-      emptyText: root.dataset.blxSelectEmptyText || 'No results found',
-      closeOnSelect: root.dataset.blxSelectCloseOnSelect
-        ? root.dataset.blxSelectCloseOnSelect === 'true'
+      placeholder: container.dataset.blxSelectPlaceholder || initialLabel,
+      multipleLabel: container.dataset.blxSelectMultiLabel || container.dataset.blxSelectPlaceholder || initialLabel,
+      summary: container.dataset.blxSelectSummary || (countEl ? 'count' : 'labels'),
+      separator: container.dataset.blxSelectSeparator || ', ',
+      valueSeparator: container.dataset.blxSelectValueSeparator || ',',
+      searchPlaceholder: container.dataset.blxSelectSearchPlaceholder || searchInput?.getAttribute('placeholder') || 'Search...',
+      searchMode: container.dataset.blxSelectSearchMode === 'starts-with' ? 'starts-with' : 'contains',
+      emptyText: container.dataset.blxSelectEmptyText || 'No results found',
+      closeOnSelect: container.dataset.blxSelectCloseOnSelect
+        ? container.dataset.blxSelectCloseOnSelect === 'true'
         : !multiple || props.includes('close-on-select'),
-      keepSearch: root.dataset.blxSelectKeepSearch === 'true' || props.includes('keep-search'),
-      maxLabels: int(root.dataset.blxSelectMaxLabels, 0),
-      openClass: root.dataset.blxSelectOpenClass || 'is-open',
-      selectedClass: root.dataset.blxSelectSelectedClass || 'is-selected',
-      hiddenClass: root.dataset.blxSelectHiddenClass || 'is-hidden',
-      disabledClass: root.dataset.blxSelectDisabledClass || 'is-disabled',
+      keepSearch: standalone || container.dataset.blxSelectKeepSearch === 'true' || props.includes('keep-search'),
+      maxLabels: int(container.dataset.blxSelectMaxLabels, 0),
+      openClass: container.dataset.blxSelectOpenClass || 'is-open',
+      selectedClass: container.dataset.blxSelectSelectedClass || 'is-selected',
+      hiddenClass: container.dataset.blxSelectHiddenClass || 'is-hidden',
+      disabledClass: container.dataset.blxSelectDisabledClass || 'is-disabled',
     };
   }
 
@@ -234,7 +255,9 @@
     const labels = selected.map(getOptionLabel);
     const values = selected.map(getOptionValue);
 
-    labelEl.textContent = getSummaryLabel(config, labels);
+    if (labelEl) {
+      labelEl.textContent = getSummaryLabel(config, labels);
+    }
 
     if (countEl) {
       countEl.textContent = String(selected.length);

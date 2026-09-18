@@ -108,7 +108,7 @@ Each package has its own detailed documentation. Click the links below to learn 
 - **[Accordion](packages/accordion/)** - Height-animated accordions with single-open groups and start-open support
 - **[Swiper](packages/swiper/)** - Attribute-driven Swiper carousels with pagination, navigation, thumbnails and CMS-friendly a11y
 - **[Local](packages/local/)** - Displays the visitor's live local time and Cloudflare-detected country
-- **[Searchable Select](packages/searchable-select/)** - Searchable single-select and multiselect dropdowns with flexible attribute wiring
+- **[Searchable Select](packages/searchable-select/)** - Searchable single-select, multiselect, and standalone filter panels with flexible attribute wiring
 
 💡 Roadmap
 More packages will be introduced soon.

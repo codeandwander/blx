@@ -126,15 +126,46 @@ Or pin to a specific version:
 </div>
 ```
 
+### Standalone panel mode
+
+If you only need the searchable list itself, you can use `blx-el="searchable-select-panel"` on its own without the dropdown wrapper/trigger:
+
+```html
+<div blx-el="searchable-select-panel" data-blx-select-multiple="true">
+  <div class="select-header">
+    <strong>Sector</strong>
+    <span blx-el="searchable-select-count"></span>
+    <button blx-el="searchable-select-clear" type="button">Clear all</button>
+  </div>
+
+  <input blx-el="searchable-select-search" type="search" placeholder="Search sector...">
+
+  <div blx-el="searchable-select-options">
+    <label blx-el="searchable-select-option" data-value="life-sciences">
+      <input type="checkbox" name="sector" value="Life Sciences &amp; Pharma">
+      <span blx-el="searchable-select-option-label">Life Sciences &amp; Pharma</span>
+    </label>
+
+    <label blx-el="searchable-select-option" data-value="telecoms">
+      <input type="checkbox" name="sector" value="Telecoms &amp; SEP">
+      <span blx-el="searchable-select-option-label">Telecoms &amp; SEP</span>
+    </label>
+  </div>
+
+  <div blx-el="searchable-select-empty" hidden>No sectors match that search.</div>
+  <input blx-el="searchable-select-input" type="hidden" name="sector-summary">
+</div>
+```
+
 ## Attributes
 
 ### Required structure
 
 | Attribute | Required | Description |
 |-----------|----------|-------------|
-| `blx-el="searchable-select"` | Yes | Root wrapper for a single dropdown |
-| `blx-el="searchable-select-trigger"` | Yes | Button or clickable trigger that opens the panel |
-| `blx-el="searchable-select-panel"` | Yes | Dropdown panel that opens/closes |
+| `blx-el="searchable-select"` | Yes for dropdown mode | Root wrapper for a single dropdown |
+| `blx-el="searchable-select-trigger"` | Yes for dropdown mode | Button or clickable trigger that opens the panel |
+| `blx-el="searchable-select-panel"` | Yes | Dropdown panel, or the standalone root when used on its own |
 | `blx-el="searchable-select-option"` | Yes | Individual option item |
 
 ### Optional child elements
@@ -194,6 +225,10 @@ The script only manages state. Style the component with your own CSS using the d
   display: block;
 }
 
+[blx-el="searchable-select-panel"] {
+  display: block;
+}
+
 [blx-el="searchable-select-option"].is-selected {
   /* selected option styles */
 }
@@ -205,10 +240,10 @@ The script only manages state. Style the component with your own CSS using the d
 
 ## How It Works
 
-1. The root block reads its configuration from `data-blx-select-*` attributes and optional `blx-prop` flags such as `multiple`, `close-on-select`, and `keep-search`.
-2. On load, the package inspects each option, infers single vs multiselect mode, and syncs the trigger label, count badge and mirrored input value from the selected items.
+1. In dropdown mode, the `blx-el="searchable-select"` block reads its configuration and pairs a trigger with a panel; in standalone mode, the panel itself is the configured block.
+2. On load, the package inspects each option, infers single vs multiselect mode, and syncs any label, count badge and mirrored input value from the selected items.
 3. Typing into `blx-el="searchable-select-search"` filters options in place, while the optional empty-state element is shown only when nothing matches.
-4. Selecting an option updates `aria-selected`, state classes, the selected-count attribute on the root, and closes the panel when the configuration says it should.
+4. Selecting an option updates `aria-selected`, state classes, the selected-count attribute on the active block, and closes the panel only when a dropdown trigger/wrapper is being used.
 
 ## License
 
