@@ -88,6 +88,7 @@
       syncState(container, config, options, labelEl, countEl, clearEl, emptyEl, valueInput, searchInput);
     };
     const close = () => {
+      if (!root || !trigger) return;
       closePanel(root, trigger, panel, searchInput, config);
     };
 
