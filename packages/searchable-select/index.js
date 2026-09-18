@@ -9,6 +9,7 @@
   const instances = new WeakMap();
   let hasDocumentClickListener = false;
   let hasInitialised = false;
+  let hasScheduledBootstrap = false;
 
   // Reusable function — exposed globally
   window.BLX_SEARCHABLE_SELECT = function () {
@@ -89,7 +90,7 @@
       }
 
       sync();
-      openPanel(root, trigger, panel, searchInput, config);
+      openPanel(root, trigger, panel, searchInput, config, options);
     });
 
     trigger.addEventListener('keydown', (event) => {
@@ -97,7 +98,7 @@
       event.preventDefault();
       if (!isOpen(root, config)) {
         sync();
-        openPanel(root, trigger, panel, searchInput, config);
+        openPanel(root, trigger, panel, searchInput, config, options);
       }
       focusFirstOption(options, searchInput);
     });
@@ -134,8 +135,9 @@
       }
     });
 
-    root.addEventListener('keydown', (event) => {
+    panel.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
+      if (!isEscapeSurface(event.target, panel, searchInput, options)) return;
       close();
       trigger.focus();
     });
@@ -294,18 +296,22 @@
     }
   }
 
-  function openPanel(root, trigger, panel, searchInput, config) {
+  function openPanel(root, trigger, panel, searchInput, config, options) {
     root.classList.add(config.openClass);
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
     openRoots.add(root);
 
-    if (searchInput) {
-      const nextFrame = window.requestAnimationFrame || function (callback) {
-        setTimeout(callback, 0);
-      };
-      nextFrame(() => searchInput.focus());
-    }
+    const nextFrame = window.requestAnimationFrame || function (callback) {
+      setTimeout(callback, 0);
+    };
+    nextFrame(() => {
+      if (searchInput) {
+        searchInput.focus();
+      } else {
+        focusFirstOption(options);
+      }
+    });
   }
 
   function closePanel(root, trigger, panel, searchInput, config) {
@@ -382,7 +388,16 @@
   }
 
   function getOptionLabel(option) {
-    return option.dataset.label || option.textContent.trim().replace(/\s+/g, ' ');
+    if (option.dataset.label) return option.dataset.label;
+
+    const explicitLabel = option.querySelector('[blx-el="searchable-select-option-label"], [data-blx-select-label]');
+    if (explicitLabel) {
+      return explicitLabel.textContent.trim().replace(/\s+/g, ' ');
+    }
+
+    const clone = option.cloneNode(true);
+    clone.querySelectorAll('input').forEach((input) => input.remove());
+    return clone.textContent.trim().replace(/\s+/g, ' ');
   }
 
   function getOptionValue(option) {
@@ -456,8 +471,17 @@
     return root.classList.contains(config.openClass);
   }
 
+  function isEscapeSurface(target, panel, searchInput, options) {
+    if (target === panel || target === searchInput) return true;
+    return options.some((option) => option === target || option.contains(target));
+  }
+
   function bootstrap() {
+    if (hasInitialised || hasScheduledBootstrap) return;
+    hasScheduledBootstrap = true;
+
     setTimeout(() => {
+      hasScheduledBootstrap = false;
       if (hasInitialised) return;
       window.BLX_SEARCHABLE_SELECT();
     }, 0);

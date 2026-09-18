@@ -146,6 +146,7 @@ Or pin to a specific version:
 | `blx-el="searchable-select-clear"` | Clear-all button; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-search"` | Search field used to filter options |
 | `blx-el="searchable-select-options"` | Optional options wrapper that receives `role="listbox"` |
+| `blx-el="searchable-select-option-label"` | Optional label node inside an option; used for summary/search text when present |
 | `blx-el="searchable-select-empty"` | Empty-state element shown when search returns no matches |
 | `blx-el="searchable-select-input"` | Hidden or text input that mirrors the selected values |
 
@@ -164,7 +165,7 @@ Or pin to a specific version:
 | `data-blx-select-empty-text` | `No results found` | Default empty-state text |
 | `data-blx-select-close-on-select` | `true` for single-select, `false` for multiselect | Close the panel after a selection |
 | `data-blx-select-keep-search` | `false` | Keep the search term when the panel closes |
-| `data-blx-select-max-labels` | `0` | Limit how many labels are shown before collapsing to `+N` |
+| `data-blx-select-max-labels` | `0` | When the component is using its label-joining summary path, limit how many labels are shown before collapsing to `+N` |
 | `data-blx-select-open-class` | `is-open` | Class toggled on the root while open |
 | `data-blx-select-selected-class` | `is-selected` | Class toggled on selected options |
 | `data-blx-select-hidden-class` | `is-hidden` | Class toggled on filtered-out options |
