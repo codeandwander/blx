@@ -166,7 +166,7 @@
 
   function getConfig(container, labelEl, searchInput, countEl, options, standalone) {
     const props = getProps(container);
-    const initialLabel = container.dataset.blxSelectInitialLabel || labelEl?.textContent.trim() || '';
+    const initialLabel = container.dataset.blxSelectInitialLabel || labelEl?.textContent.trim() || 'Select option';
     const explicitMultiple = container.dataset.blxSelectMultiple;
     const hasCheckboxes = options.some((option) => getOptionInput(option)?.type === 'checkbox');
     const multiple = explicitMultiple
