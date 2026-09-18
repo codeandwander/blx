@@ -256,7 +256,10 @@
     trigger.setAttribute('aria-expanded', 'true');
 
     if (searchInput) {
-      requestAnimationFrame(() => searchInput.focus());
+      const nextFrame = window.requestAnimationFrame || function (callback) {
+        setTimeout(callback, 0);
+      };
+      nextFrame(() => searchInput.focus());
     }
   }
 
