@@ -5,11 +5,15 @@
 
   let panelCount = 0;
   const roots = new Set();
+  const openRoots = new Set();
   const instances = new WeakMap();
   let hasDocumentClickListener = false;
+  let hasInitialised = false;
 
   // Reusable function — exposed globally
   window.BLX_SEARCHABLE_SELECT = function () {
+    hasInitialised = true;
+
     const selects = document.querySelectorAll('[blx-el="searchable-select"]');
     if (!selects.length) return;
 
@@ -294,6 +298,7 @@
     root.classList.add(config.openClass);
     panel.hidden = false;
     trigger.setAttribute('aria-expanded', 'true');
+    openRoots.add(root);
 
     if (searchInput) {
       const nextFrame = window.requestAnimationFrame || function (callback) {
@@ -309,6 +314,7 @@
     root.classList.remove(config.openClass);
     panel.hidden = true;
     trigger.setAttribute('aria-expanded', 'false');
+    openRoots.delete(root);
 
     if (searchInput && !config.keepSearch && searchInput.value) {
       searchInput.value = '';
@@ -381,7 +387,7 @@
 
   function getOptionValue(option) {
     const input = getOptionInput(option);
-    return input?.value || option.dataset.value || getOptionLabel(option);
+    return option.dataset.value || input?.value || getOptionLabel(option);
   }
 
   function isOptionSelected(option) {
@@ -417,14 +423,17 @@
     hasDocumentClickListener = true;
 
     document.addEventListener('click', (event) => {
-      roots.forEach((root) => {
+      const activeRoot = event.target.closest?.('[blx-el="searchable-select"]') || null;
+
+      openRoots.forEach((root) => {
         if (!root.isConnected) {
           roots.delete(root);
+          openRoots.delete(root);
           instances.delete(root);
           return;
         }
 
-        if (!root.contains(event.target)) {
+        if (root !== activeRoot) {
           instances.get(root)?.close();
         }
       });
@@ -448,7 +457,10 @@
   }
 
   function bootstrap() {
-    window.BLX_SEARCHABLE_SELECT();
+    setTimeout(() => {
+      if (hasInitialised) return;
+      window.BLX_SEARCHABLE_SELECT();
+    }, 0);
   }
 
   // Run once on initial page load (even if script injected late)
