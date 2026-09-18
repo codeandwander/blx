@@ -156,7 +156,7 @@ Or pin to a specific version:
 | `data-blx-select-multiple` | auto-detect | Force multiselect mode (`true` / `false`) |
 | `data-blx-select-placeholder` | trigger text | Placeholder shown when nothing is selected |
 | `data-blx-select-multi-label` | placeholder | Trigger label used in `count` summary mode |
-| `data-blx-select-summary` | `count` when a count badge exists, otherwise `labels` | Multiselect summary mode: `count`, `labels`, or `first` |
+| `data-blx-select-summary` | `count` when a count badge exists, otherwise `labels` | Multiselect summary mode: `count`, `labels`, or `first`; in `labels` mode `data-blx-select-max-labels` can collapse the summary to `label1, label2 +N` |
 | `data-blx-select-separator` | `, ` | Separator for the `labels` summary |
 | `data-blx-select-value-separator` | `,` | Separator used when mirroring values into `blx-el="searchable-select-input"` |
 | `data-blx-select-search-placeholder` | `Search...` | Search input placeholder |

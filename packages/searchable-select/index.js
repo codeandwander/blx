@@ -79,13 +79,20 @@
 
     trigger.addEventListener('click', (event) => {
       event.preventDefault();
-      isOpen(root, config) ? close() : openPanel(root, trigger, panel, searchInput, config);
+      if (isOpen(root, config)) {
+        close();
+        return;
+      }
+
+      sync();
+      openPanel(root, trigger, panel, searchInput, config);
     });
 
     trigger.addEventListener('keydown', (event) => {
       if (event.key !== 'ArrowDown' && event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
       if (!isOpen(root, config)) {
+        sync();
         openPanel(root, trigger, panel, searchInput, config);
       }
       focusFirstOption(options, searchInput);
@@ -349,6 +356,13 @@
 
   function isOptionSelected(option) {
     const input = getOptionInput(option);
+    if (input?.type === 'radio') {
+      const group = option.closest('[blx-el="searchable-select-options"]') || option.closest('[blx-el="searchable-select"]');
+      const checked = Array.from(group?.querySelectorAll('input[type="radio"]') || []).find((candidate) => {
+        return candidate.name === input.name && candidate.checked;
+      });
+      return checked === input;
+    }
     if (input) return input.checked;
     return option.dataset.selected === 'true' || option.getAttribute('aria-selected') === 'true';
   }
