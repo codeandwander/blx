@@ -98,8 +98,6 @@
     instances.set(container, { sync, close });
 
     options.forEach((option) => setupOption(option, config, options, sync, close));
-    applyQuerySelection(container, config, options);
-    sync();
 
     if (trigger) {
       trigger.addEventListener('click', (event) => {
@@ -155,6 +153,9 @@
         });
       }
     });
+
+    applyQuerySelection(container, config, options);
+    sync();
 
     if (trigger) {
       panel.addEventListener('keydown', (event) => {
