@@ -98,6 +98,7 @@
     instances.set(container, { sync, close });
 
     options.forEach((option) => setupOption(option, config, options, sync, close));
+    applyQuerySelection(container, config, options);
     sync();
 
     if (trigger) {
@@ -189,11 +190,38 @@
         : !multiple || props.includes('close-on-select'),
       keepSearch: standalone || container.dataset.blxSelectKeepSearch === 'true' || props.includes('keep-search'),
       maxLabels: int(container.dataset.blxSelectMaxLabels, 0),
+      queryParam: container.dataset.blxSelectQueryParam || '',
+      querySeparator: container.dataset.blxSelectQuerySeparator || ',',
       openClass: container.dataset.blxSelectOpenClass || 'is-open',
       selectedClass: container.dataset.blxSelectSelectedClass || 'is-selected',
       hiddenClass: container.dataset.blxSelectHiddenClass || 'is-hidden',
       disabledClass: container.dataset.blxSelectDisabledClass || 'is-disabled',
     };
+  }
+
+  function applyQuerySelection(container, config, options) {
+    if (!config.queryParam || container.dataset.blxSelectQueryApplied === 'true') return;
+    container.dataset.blxSelectQueryApplied = 'true';
+
+    const queryValues = getQueryValues(config.queryParam, config.querySeparator);
+    if (!queryValues.length) return;
+
+    const matches = options.filter((option) => {
+      return queryValues.some((value) => optionMatchesQueryValue(option, value));
+    });
+    if (!matches.length) return;
+
+    if (config.multiple) {
+      options.forEach((option) => {
+        setOptionSelected(option, matches.includes(option));
+      });
+      return;
+    }
+
+    const selected = matches[0];
+    options.forEach((option) => {
+      setOptionSelected(option, option === selected);
+    });
   }
 
   function setupOption(option, config, options, sync, close) {
@@ -440,10 +468,13 @@
 
     const input = getOptionInput(option);
     if (input) {
+      if (input.checked === selected) return;
       input.checked = selected;
+      dispatchNativeSelectionEvents(input);
       return;
     }
 
+    if (option.dataset.selected === String(selected) && option.getAttribute('aria-selected') === String(selected)) return;
     option.dataset.selected = String(selected);
     option.setAttribute('aria-selected', String(selected));
   }
@@ -489,6 +520,58 @@
   function int(value, fallback) {
     const parsed = parseInt(value, 10);
     return Number.isNaN(parsed) ? fallback : parsed;
+  }
+
+  function getQueryValues(paramName, separator) {
+    const search = window.location?.search;
+    if (!search) return [];
+
+    const params = new URLSearchParams(search);
+    return Array.from(new Set(
+      params
+        .getAll(paramName)
+        .flatMap((value) => value.split(separator))
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ));
+  }
+
+  function optionMatchesQueryValue(option, queryValue) {
+    const targets = getComparableTokens(queryValue);
+    if (!targets.length) return false;
+
+    return [
+      getOptionValue(option),
+      getOptionLabel(option),
+      option.dataset.value,
+      option.dataset.label,
+    ].some((value) => {
+      return getComparableTokens(value).some((token) => targets.includes(token));
+    });
+  }
+
+  function getComparableTokens(value) {
+    const normalized = normalizeText(value);
+    if (!normalized) return [];
+
+    return Array.from(new Set([
+      normalized,
+      normalized.replace(/[\s_]+/g, '-'),
+      normalized
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, ''),
+    ].filter(Boolean)));
+  }
+
+  function normalizeText(value) {
+    return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  function dispatchNativeSelectionEvents(input) {
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
   function isOpen(root, config) {
