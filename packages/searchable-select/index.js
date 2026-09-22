@@ -571,8 +571,12 @@
   }
 
   function dispatchNativeSelectionEvents(input) {
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
+    const EventConstructor = input.ownerDocument?.defaultView?.Event
+      || (typeof Event !== 'undefined' ? Event : null);
+    if (!EventConstructor) return;
+
+    input.dispatchEvent(new EventConstructor('input', { bubbles: true }));
+    input.dispatchEvent(new EventConstructor('change', { bubbles: true }));
   }
 
   function isOpen(root, config) {
