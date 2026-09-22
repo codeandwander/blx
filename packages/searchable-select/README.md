@@ -126,6 +126,46 @@ Or pin to a specific version:
 </div>
 ```
 
+### Deep-linked filters from query params
+
+Use `data-blx-select-query-param` when you want a page URL to preselect one or more options on load, such as linking a case-report tag to a filtered results page.
+
+```html
+<div
+  blx-el="searchable-select"
+  data-blx-select-multiple="true"
+  data-blx-select-placeholder="Tags"
+  data-blx-select-query-param="tag"
+>
+  <button blx-el="searchable-select-trigger" type="button">
+    <span blx-el="searchable-select-label">Tags</span>
+    <span blx-el="searchable-select-count" hidden></span>
+  </button>
+
+  <div blx-el="searchable-select-panel" hidden>
+    <div blx-el="searchable-select-options">
+      <label blx-el="searchable-select-option" data-value="amendments">
+        <input type="checkbox" name="tag" value="Amendments">
+        <span>Amendments</span>
+      </label>
+
+      <label blx-el="searchable-select-option" data-value="upc">
+        <input type="checkbox" name="tag" value="UPC">
+        <span>UPC</span>
+      </label>
+    </div>
+  </div>
+</div>
+```
+
+With that configuration, links such as `/case-reports?tag=amendments` or `/case-reports?tag=amendments,upc` will preselect the matching options on load.
+
+The query reader also supports JSON-array values used by Finsweet filter URLs, for example:
+
+```text
+/case-reports?tags_equal=%5B%22Amendments%22%2C%22Analysis%22%2C%22Appeal%22%5D
+```
+
 ### Standalone panel mode
 
 If you only need the searchable list itself, you can use `blx-el="searchable-select-panel"` on its own without the dropdown wrapper/trigger. In standalone mode, place any `data-blx-select-*` configuration on the panel element itself:
@@ -198,6 +238,8 @@ If you only need the searchable list itself, you can use `blx-el="searchable-sel
 | `data-blx-select-close-on-select` | `true` for single-select, `false` for multiselect | Close the panel after a selection |
 | `data-blx-select-keep-search` | `false` | Keep the search term when the panel closes |
 | `data-blx-select-max-labels` | `0` | When the component is using its label-joining summary path, limit how many labels are shown before collapsing to `+N` |
+| `data-blx-select-query-param` | unset | Query-string key to read on load for preselecting matching options |
+| `data-blx-select-query-separator` | `,` | Separator used when a single query-string value contains multiple selections |
 | `data-blx-select-open-class` | `is-open` | Class toggled on the root while open |
 | `data-blx-select-selected-class` | `is-selected` | Class toggled on selected options |
 | `data-blx-select-hidden-class` | `is-hidden` | Class toggled on filtered-out options |
@@ -243,8 +285,9 @@ The script only manages state. Style the component with your own CSS using the d
 
 1. In dropdown mode, the `blx-el="searchable-select"` block reads its configuration and pairs a trigger with a panel; in standalone mode, the panel itself is the configured block.
 2. On load, the package inspects each option, infers single vs multiselect mode, and syncs any label, count badge and mirrored input value from the selected items.
-3. Typing into `blx-el="searchable-select-search"` filters options in place, while the optional empty-state element is shown only when nothing matches.
-4. Selecting an option updates `aria-selected`, state classes, the selected-count attribute on the active block, and closes the panel only when a dropdown trigger/wrapper is being used.
+3. If `data-blx-select-query-param` is set, matching query-string values are applied before the component syncs its visible state.
+4. Typing into `blx-el="searchable-select-search"` filters options in place, while the optional empty-state element is shown only when nothing matches.
+5. Selecting an option updates `aria-selected`, state classes, the selected-count attribute on the active block, and closes the panel only when a dropdown trigger/wrapper is being used.
 
 ## License
 
