@@ -524,7 +524,7 @@
   }
 
   function getQueryValues(paramName, separator) {
-    const search = window.location?.search;
+    const search = typeof window !== 'undefined' ? window.location?.search : '';
     if (!search) return [];
 
     const params = new URLSearchParams(search);
