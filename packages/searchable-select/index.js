@@ -531,10 +531,28 @@
     return Array.from(new Set(
       params
         .getAll(paramName)
-        .flatMap((value) => value.split(separator))
+        .flatMap((value) => expandQueryValue(value, separator))
         .map((value) => value.trim())
         .filter(Boolean)
     ));
+  }
+
+  function expandQueryValue(value, separator) {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) return [];
+
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item) => String(item));
+        }
+      } catch (error) {
+        // Fall through to separator-based parsing.
+      }
+    }
+
+    return trimmed.split(separator);
   }
 
   function optionMatchesQueryValue(option, queryValue) {

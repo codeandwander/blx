@@ -160,6 +160,12 @@ Use `data-blx-select-query-param` when you want a page URL to preselect one or m
 
 With that configuration, links such as `/case-reports?tag=amendments` or `/case-reports?tag=amendments,upc` will preselect the matching options on load.
 
+The query reader also supports JSON-array values used by Finsweet filter URLs, for example:
+
+```text
+/case-reports?tags_equal=%5B%22Amendments%22%2C%22Analysis%22%2C%22Appeal%22%5D
+```
+
 ### Standalone panel mode
 
 If you only need the searchable list itself, you can use `blx-el="searchable-select-panel"` on its own without the dropdown wrapper/trigger. In standalone mode, place any `data-blx-select-*` configuration on the panel element itself:
