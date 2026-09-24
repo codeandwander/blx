@@ -7,6 +7,7 @@ A searchable dropdown for single-select and multiselect UI patterns in Webflow-s
 - 🔎 Client-side search filtering with optional empty state
 - ☑️ Supports both single-select and multiselect blocks
 - 🧩 Works with native radio/checkbox inputs or data-driven option elements
+- 🧱 Reflows cleanly in multi-column layouts when filtered
 - 🔢 Optional selected-count badge, clear button and hidden-value mirror input
 - ♿ Accessible defaults with `aria-expanded`, `role="listbox"`, `role="option"`, Escape close and outside-click close
 
@@ -198,6 +199,28 @@ If you only need the searchable list itself, you can use `blx-el="searchable-sel
 </div>
 ```
 
+### Multi-column option layouts
+
+When your options wrapper uses a grid or other multi-column layout, keep each visual cell as a direct child of `blx-el="searchable-select-options"` and place `blx-el="searchable-select-option"` inside it. Filtering will hide that direct child so the layout reflows without empty gaps.
+
+```html
+<div blx-el="searchable-select-options" class="tags-grid">
+  <div class="tags-grid-item">
+    <label blx-el="searchable-select-option">
+      <input type="checkbox" name="tag" value="Claim interpretation">
+      <span>Claim interpretation</span>
+    </label>
+  </div>
+
+  <div class="tags-grid-item">
+    <label blx-el="searchable-select-option">
+      <input type="checkbox" name="tag" value="Claim Construction">
+      <span>Claim Construction</span>
+    </label>
+  </div>
+</div>
+```
+
 ## Attributes
 
 ### Required structure
@@ -217,7 +240,7 @@ If you only need the searchable list itself, you can use `blx-el="searchable-sel
 | `blx-el="searchable-select-count"` | Count badge; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-clear"` | Clear-all button; hidden automatically when nothing is selected |
 | `blx-el="searchable-select-search"` | Search field used to filter options |
-| `blx-el="searchable-select-options"` | Optional options wrapper that receives `role="listbox"` |
+| `blx-el="searchable-select-options"` | Optional options wrapper that receives `role="listbox"`; when options are nested, its direct child wrapper is what gets hidden during filtering |
 | `blx-el="searchable-select-option-label"` | Optional label node inside an option; used for summary/search text when present |
 | `blx-el="searchable-select-empty"` | Empty-state element shown when search returns no matches |
 | `blx-el="searchable-select-input"` | Hidden or text input that mirrors the selected values |
@@ -276,7 +299,8 @@ The script only manages state. Style the component with your own CSS using the d
   /* selected option styles */
 }
 
-[blx-el="searchable-select-option"].is-hidden {
+[blx-el="searchable-select-option"].is-hidden,
+[blx-el="searchable-select-options"] > .is-hidden {
   display: none;
 }
 ```
