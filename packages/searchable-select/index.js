@@ -344,6 +344,7 @@
       const match = !term || (config.searchMode === 'starts-with' ? haystack.startsWith(term) : haystack.includes(term));
       const visibilityTarget = getOptionVisibilityTarget(option);
 
+      option.hidden = !match;
       option.classList.toggle(config.hiddenClass, !match);
       if (visibilityTarget !== option) {
         visibilityTarget.classList.toggle(config.hiddenClass, !match);
