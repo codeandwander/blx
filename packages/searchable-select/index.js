@@ -7,6 +7,7 @@
   const roots = new Set();
   const openRoots = new Set();
   const instances = new WeakMap();
+  const visibilityTargets = new WeakMap();
   let hasDocumentClickListener = false;
   let hasInitialised = false;
   let hasScheduledBootstrap = false;
@@ -55,6 +56,10 @@
     const valueInput = scope.querySelector('[blx-el="searchable-select-input"]');
     const listbox = panel.querySelector('[blx-el="searchable-select-options"]') || panel;
     const config = getConfig(container, labelEl, searchInput, countEl, options, standalone);
+
+    options.forEach((option) => {
+      visibilityTargets.set(option, getVisibilityTarget(option, listbox));
+    });
 
     if (!panel.id) {
       panel.id = `blx-searchable-select-panel-${++panelCount}`;
@@ -337,9 +342,14 @@
     options.forEach((option) => {
       const haystack = (option.dataset.blxSelectSearchText || getOptionLabel(option)).toLowerCase();
       const match = !term || (config.searchMode === 'starts-with' ? haystack.startsWith(term) : haystack.includes(term));
+      const visibilityTarget = getOptionVisibilityTarget(option);
 
       option.hidden = !match;
       option.classList.toggle(config.hiddenClass, !match);
+      if (visibilityTarget !== option) {
+        visibilityTarget.classList.toggle(config.hiddenClass, !match);
+      }
+      visibilityTarget.hidden = !match;
       if (match) visibleCount += 1;
     });
 
@@ -386,7 +396,7 @@
   }
 
   function focusFirstOption(options, searchInput) {
-    const firstVisible = options.find((option) => !option.hidden && !isDisabled(option));
+    const firstVisible = options.find((option) => isOptionVisible(option) && !isDisabled(option));
     if (!firstVisible) {
       searchInput?.focus();
       return;
@@ -401,7 +411,7 @@
   }
 
   function focusRelativeOption(options, currentOption, direction) {
-    const visible = options.filter((option) => !option.hidden && !isDisabled(option));
+    const visible = options.filter((option) => isOptionVisible(option) && !isDisabled(option));
     if (!visible.length) return;
 
     const index = visible.indexOf(currentOption);
@@ -420,6 +430,25 @@
 
   function getOptionInput(option) {
     return option.querySelector('input[type="checkbox"], input[type="radio"]');
+  }
+
+  function getVisibilityTarget(option, listbox) {
+    if (!listbox || option.parentElement === listbox) return option;
+
+    let current = option;
+    while (current.parentElement && current.parentElement !== listbox) {
+      current = current.parentElement;
+    }
+
+    return current.parentElement === listbox ? current : option;
+  }
+
+  function getOptionVisibilityTarget(option) {
+    return visibilityTargets.get(option) || option;
+  }
+
+  function isOptionVisible(option) {
+    return !getOptionVisibilityTarget(option).hidden;
   }
 
   function getLabelElement(root, trigger) {
