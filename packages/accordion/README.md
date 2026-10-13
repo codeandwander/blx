@@ -96,6 +96,15 @@ The script controls `height` and `overflow` on the body, and toggles the `is-ope
 2. Clicking the head toggles the panel: opening animates the body to its content height, then settles to `auto` so it stays responsive; closing animates back to `0px`.
 3. Inside a `single-open` group, opening one panel closes any open siblings.
 
+## Re-initialising (dynamic content)
+
+`window.BLX_ACCORDION()` is safe to call again — for example after a CMS load (Finsweet) injects new accordions. New accordions are set up; ones that are already initialised are left as they are, keeping their open/closed state.
+
+```js
+// After injecting new accordions
+window.BLX_ACCORDION();
+```
+
 ## License
 
 Part of the BLX library. See main repository for license information.

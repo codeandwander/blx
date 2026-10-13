@@ -1,10 +1,16 @@
 // BLX Accordion
-// Version: 1.0.0
+// Version: 1.0.1
 
 (() => {
 
   // Configuration
   const ACCORDION_BREAKPOINT = 768; // px — start-open only applies at or above this width
+
+  // Accordions already wired up. BLX_ACCORDION() runs more than once — the
+  // global loader calls it after the package has initialised itself, and it can
+  // be re-run after injected content — so each accordion must only get one
+  // click toggle; a second one would close it straight after opening it.
+  const initialised = new WeakSet();
 
   // Reusable function — exposed globally
   window.BLX_ACCORDION = function () {
@@ -15,9 +21,13 @@
   };
 
   function initAccordion(accordion) {
+    if (initialised.has(accordion)) return;
+
     const head = accordion.querySelector('[blx-el="accordion-head"]');
     const body = accordion.querySelector('[blx-el="accordion-body"]');
     if (!head || !body) return;
+
+    initialised.add(accordion);
 
     const startOpen =
       accordion.getAttribute('blx-prop') === 'start-open' &&
